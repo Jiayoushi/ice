@@ -1,6 +1,6 @@
 class Server {
   private:
-    int server_file_descriptor;
+    int listen_file_descriptor;
 
   public:
     Server();
