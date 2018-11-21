@@ -1,0 +1,7 @@
+cd ..
+make
+cd tests
+../ice &
+python3 test_echo.py
+
+echo "Tests passed"
