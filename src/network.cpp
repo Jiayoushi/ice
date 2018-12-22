@@ -9,26 +9,26 @@
 
 #include "network.h"
 
-namespace network {
+namespace ice {
 
 int Socket(int domain, int type, int protocol) {
-  int listen_file_descriptor = socket(domain, type, protocol);
-  if (listen_file_descriptor < 0) {
+  int listen_fd = socket(domain, type, protocol);
+  if (listen_fd < 0) {
     perror("Error: failed to set up socket ");
     exit(EXIT_FAILURE);
   }
-  return listen_file_descriptor;
+  return listen_fd;
 }
 
-void Bind(int listen_file_descriptor, sockaddr_in &server_address) {
-  if (bind(listen_file_descriptor, (sockaddr *)&server_address, sizeof(server_address)) < 0) {
+void Bind(int listen_fd, sockaddr_in &server_address) {
+  if (bind(listen_fd, (sockaddr *)&server_address, sizeof(server_address)) < 0) {
     perror("bind");
     exit(EXIT_FAILURE);
   }
 }
 
-void Listen(int listen_file_descriptor, int max_pending_connections) {
-  if (listen(listen_file_descriptor, max_pending_connections) < 0) {
+void Listen(int listen_fd, int max_pending_connections) {
+  if (listen(listen_fd, max_pending_connections) < 0) {
     perror("listen");
     exit(EXIT_FAILURE);
   }
@@ -39,40 +39,38 @@ void SetServerAddress(sockaddr_in &server_address) {
   server_address.sin_family = AF_INET;
   server_address.sin_addr.s_addr = INADDR_ANY;
   server_address.sin_port = htons(8080);
-
-
 }
 
-void SetSocketOptions(int listen_file_descriptor) {
+void SetSocketOptions(int listen_fd) {
   int optval = 1;
-  if (setsockopt(listen_file_descriptor, SOL_SOCKET, SO_REUSEADDR, (const void *)&optval, sizeof(int)) < 0) {
+  if (setsockopt(listen_fd, SOL_SOCKET, SO_REUSEADDR, (const void *)&optval, sizeof(int)) < 0) {
     perror("Error: setsockopt ");
     exit(EXIT_FAILURE);
   }
 }
 
 int SetUp() {
-  int listen_file_descriptor = Socket(AF_INET, SOCK_STREAM, 0);
+  int listen_fd = Socket(AF_INET, SOCK_STREAM, 0);
   sockaddr_in server_address;
   SetServerAddress(server_address);
-  SetSocketOptions(listen_file_descriptor);
-  Bind(listen_file_descriptor, server_address);
-  Listen(listen_file_descriptor, 128);
-  return listen_file_descriptor;
+  SetSocketOptions(listen_fd);
+  Bind(listen_fd, server_address);
+  Listen(listen_fd, 128);
+  return listen_fd;
 }
 
-int Accept(int listen_file_descriptor) {
-  int client_file_descriptor = accept(listen_file_descriptor, (sockaddr *)NULL, NULL);
-  if (client_file_descriptor < 0) {
+int Accept(int listen_fd, sockaddr *address, socklen_t *address_length) {
+  int client_fd = accept(listen_fd, address, address_length);
+  if (client_fd < 0) {
     perror("Error: accept");
     exit(EXIT_FAILURE);
   }
 
-  return client_file_descriptor;
+  return client_fd;
 }
 
-int Read(int client_file_descriptor, char *buffer, const size_t length) {
-  int length_read = read(client_file_descriptor, buffer, length);
+int Read(int client_fd, char *buffer, const size_t length) {
+  int length_read = read(client_fd, buffer, length);
   if (length_read < 0) {
     perror("Error: read");
     exit(EXIT_FAILURE);
@@ -81,14 +79,26 @@ int Read(int client_file_descriptor, char *buffer, const size_t length) {
   return length_read;
 }
 
-int Write(int client_file_descriptor, char *buffer, const size_t length) {
-  int length_write = write(client_file_descriptor, buffer, length);
+int Write(int client_fd, char *buffer, const size_t length) {
+  int length_write = write(client_fd, buffer, length);
   if (length_write < 0) {
-    perror("Error: read");
+    perror("Error: write");
     exit(EXIT_FAILURE);
   }
 
   return length_write;
 }
+
+void Select(int fd_limit, fd_set *read_fds, \
+            fd_set *write_fds, fd_set *exceptions,       \
+            struct timeval *timeout) {
+  if (select(fd_limit, read_fds, \
+             write_fds, exceptions, timeout) < 0) {
+    perror("Error: select");
+    exit(EXIT_FAILURE);
+  }
+}
+
+
 }
 

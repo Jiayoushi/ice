@@ -2,6 +2,6 @@ cd ..
 make
 cd tests
 ../ice &
-python3 test_echo.py
+python3 test.py
 
 echo "Tests passed"

@@ -3,7 +3,7 @@
 #include "server.h"
 
 int main() {
-  Server server;
+  ice::Server server;
   server.Run();	  
 
   return 0;
