@@ -23,7 +23,6 @@ for client in clients:
 for client in clients:
     client['socket'].sendall(MESSAGE)
     data = client['socket'].recv(1024)
-    print(data)
     assert data == MESSAGE
 
 
