@@ -14,7 +14,7 @@ void SetSocketOptions(int listen_fd);
 int Accept(int listen_fd, sockaddr *address, socklen_t *address_length);
 void Close(int fd);
 int Read(int client_fd, char *buffer, const size_t length);
-int Write(int client_fd, char *buffer, const size_t length);
+int Write(int client_fd, const char *buffer, const size_t length);
 
 // fd_limit should be set to the highest-numbered file descriptor 
 // in any of the three sets, plus 1.  

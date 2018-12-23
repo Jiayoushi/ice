@@ -16,7 +16,7 @@ Server::~Server() {
 void Server::Connect() {
   listen_fd_ = SetUp();
   InitHttpParserSettings();
-  std::cout << "Server: set up sucess." << std::endl;
+  std::cout << "Server: set up success." << std::endl;
 }
 
 void Server::Loop() {
@@ -60,10 +60,13 @@ void Server::HandleClient(int client_fd) {
   ClientInfo &client_info = client_infos_[client_fd];
   char message[kMaxMessageLen];
   int message_len = Read(client_info.client_fd, message, kMaxMessageLen);
-  message[message_len] = '\0';
 
   ParseHttpMessage(message, message_len, client_info.http_request);
 
+  Response response;
+  GetResponse(client_info.http_request, response);
+
+  Write(client_fd, response.content.c_str(), response.content.size());
 }
 
 void Server::AddClient(int client_fd, const sockaddr_in &client_address) {

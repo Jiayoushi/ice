@@ -3,17 +3,16 @@
 
 #include <string>
 
+#include "http.h"
+
 namespace ice {
 
-
-/*
 struct Response {
-  char *data;
+  std::string content;
   size_t size;
 };
 
-Response GetResponse(const HttpRequest &http_request, Response &response);
-*/
+void GetResponse(const HttpRequest &http_request, Response &response);
 
 
 }

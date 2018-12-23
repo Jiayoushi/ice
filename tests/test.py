@@ -7,8 +7,13 @@ import ipaddress
 BASE_HOST = '127.0.0.1'
 PORT = 8080
 
-GET1 = open('sample_request_realistic', 'r').read()
-MESSAGE = GET1.encode()
+with open('sample_request_realistic', 'r') as f:
+    GET1 = f.read()
+
+with open('../content/home.html', 'r') as f:
+    EXPECTED_RESPONSE = f.read().encode()
+
+REQUEST = GET1.encode()
 
 num_clients = 1
 clients = []
@@ -21,12 +26,11 @@ for client in clients:
     host = client['host']
     client['socket'].connect((host, PORT))
 
-
 # Send and echo
 for client in clients:
-    client['socket'].sendall(MESSAGE)
+    client['socket'].sendall(REQUEST)
     data = client['socket'].recv(1024)
-    assert data == MESSAGE
+    assert data == EXPECTED_RESPONSE
 
 # Close
 for client in clients:

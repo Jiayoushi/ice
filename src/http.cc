@@ -31,11 +31,6 @@ void ParseHttpMessage(const char *message, size_t msg_len, struct HttpRequest &h
 int OnUrlCallback(http_parser *parser, const char *at, size_t len) {
   HttpRequest *http_request = (HttpRequest *)parser->data;
   http_request->data["url"] = std::string(at, len);
-
-  for (size_t i = 0; i < len; ++i) {
-    std::cout << *(at + i);
-  }
-  std::cout << std::endl;
   return 0;
 }
 

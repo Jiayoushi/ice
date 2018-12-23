@@ -86,7 +86,7 @@ int Read(int client_fd, char *buffer, const size_t length) {
   return length_read;
 }
 
-int Write(int client_fd, char *buffer, const size_t length) {
+int Write(int client_fd, const char *buffer, const size_t length) {
   int length_write = write(client_fd, buffer, length);
   if (length_write < 0) {
     perror("Error: write");
