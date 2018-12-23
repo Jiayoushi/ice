@@ -15,7 +15,8 @@ Server::~Server() {
 
 void Server::Connect() {
   listen_fd_ = SetUp();
-  std::cout << "Server: set up sucessful" << std::endl;
+  InitHttpParserSettings();
+  std::cout << "Server: set up sucess." << std::endl;
 }
 
 void Server::Loop() {
@@ -36,9 +37,14 @@ void Server::Loop() {
           int client_fd = Accept(listen_fd_, (sockaddr *)&client_address, &address_length);
 
           AddClient(client_fd, client_address);
+
           FD_SET(client_fd, &active_fds);
         } else {
           HandleClient(fd);
+          RemoveClient(fd);
+
+          Close(fd);
+          FD_CLR(fd, &active_fds);
         }
       }
     }
@@ -50,19 +56,22 @@ void Server::Run() {
   Loop();
 }
 
+void Server::HandleClient(int client_fd) {
+  ClientInfo &client_info = client_infos_[client_fd];
+  char message[kMaxMessageLen];
+  int message_len = Read(client_info.client_fd, message, kMaxMessageLen);
+  message[message_len] = '\0';
+
+  ParseHttpMessage(message, message_len, client_info.http_request);
+
+}
+
 void Server::AddClient(int client_fd, const sockaddr_in &client_address) {
   client_infos_[client_fd] = ClientInfo(client_fd, client_address);
 }
 
-void Server::HandleClient(int client_fd) {
-  const ClientInfo &client_info = client_infos_[client_fd];
-  char buffer[kMaxMessageLen];
-  int message_len = Read(client_info.client_fd, buffer, kMaxMessageLen);
-  buffer[message_len] = '\0';
-
-  if (message_len > 0) {
-    Write(client_fd, buffer, message_len);
-  }
+void Server::RemoveClient(int client_fd) {
+  client_infos_.erase(client_fd);
 }
 
 }

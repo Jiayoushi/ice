@@ -69,6 +69,13 @@ int Accept(int listen_fd, sockaddr *address, socklen_t *address_length) {
   return client_fd;
 }
 
+void Close(int fd) {
+  if (close(fd) < 0) {
+    perror("Error: close");
+    exit(EXIT_FAILURE);
+  }
+}
+
 int Read(int client_fd, char *buffer, const size_t length) {
   int length_read = read(client_fd, buffer, length);
   if (length_read < 0) {

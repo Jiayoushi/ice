@@ -1,5 +1,5 @@
-#ifndef NETWORK_H_
-#define NETWORK_H_
+#ifndef ICE_NETWORK_H_
+#define ICE_NETWORK_H_
 
 #include <netinet/in.h>
 #include <sys/select.h>
@@ -12,6 +12,7 @@ void Listen(int listen_fd, int max_pending_connections);
 void SetServerAddress(sockaddr_in &server_address);
 void SetSocketOptions(int listen_fd);
 int Accept(int listen_fd, sockaddr *address, socklen_t *address_length);
+void Close(int fd);
 int Read(int client_fd, char *buffer, const size_t length);
 int Write(int client_fd, char *buffer, const size_t length);
 
