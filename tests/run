@@ -1,7 +1,11 @@
 cd ..
 make
 cd tests
-../ice &
+#../ice &
 python3 test.py
 
-echo "Tests passed"
+if [ $? -ne 0 ]; then
+  echo "Tests Failed"
+else
+  echo "Tests Passed"
+fi

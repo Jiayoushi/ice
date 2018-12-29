@@ -2,8 +2,18 @@
 
 import socket
 import ipaddress
+import subprocess
+import atexit
+import time
 
+# Server
+server = subprocess.Popen(['../ice'])
+atexit.register(server.kill)
+print(server.pid)
 
+time.sleep(1)
+
+# Client
 BASE_HOST = '127.0.0.1'
 PORT = 8080
 
