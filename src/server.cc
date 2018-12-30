@@ -8,9 +8,13 @@
 namespace ice {
 
 std::string base_directory;
+std::string content_directory;
 
 Server::Server(const std::string &kBaseDirectory) {
   base_directory = kBaseDirectory;
+  content_directory = kBaseDirectory + "/content/";
+  InitHttpParserSettings();
+  InitContentMapping();
 }
 
 Server::~Server() {
@@ -18,7 +22,6 @@ Server::~Server() {
 
 void Server::Connect() {
   listen_fd_ = SetUp();
-  InitHttpParserSettings();
 }
 
 void Server::Loop() {

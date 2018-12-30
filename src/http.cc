@@ -25,8 +25,6 @@ void ParseHttpMessage(const char *message, size_t msg_len, struct HttpRequest &h
   size_t nparsed = 0;
   nparsed = http_parser_execute(parser, &settings, message, msg_len);
   if (nparsed != msg_len) {
-    //printf("Http Request Parsing Error: %s\n", \
-           http_errno_name(http_errno(parser->http_errno)));
     http_request.valid = false;
   }
 

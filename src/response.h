@@ -12,8 +12,8 @@ struct Response {
   std::vector<std::string> responses;
 };
 
+void InitContentMapping();
 void GetResponse(const HttpRequest &http_request, Response &response);
 void SendResponse(int client_fd, const Response &response);
-
 }
 #endif

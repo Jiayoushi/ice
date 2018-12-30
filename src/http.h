@@ -9,8 +9,6 @@
 
 namespace ice {
 
-// Error
-
 // Method
 // Url
 // Host
@@ -25,6 +23,10 @@ struct HttpRequest {
 
   HttpRequest():
     data(), valid(true) {
+  }
+
+  const std::string & Get(const std::string &key) const {
+    return data.at(key);
   }
 };
 

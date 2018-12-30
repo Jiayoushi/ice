@@ -18,17 +18,17 @@ PORT = 8080
 
 requests_folder = 'requests/'
 response_postfix = '_response'
-requests = ['realistic', 'invalid_get']
-
+requests = [('get_home', 'r'), ('get_ico', 'rb'), ('invalid_get', 'r')]
 
 for request in requests:
-    with open(requests_folder + request, 'r') as f:
-        GET1 = f.read()
-
-    with open(requests_folder + request + response_postfix, 'r') as f:
-        EXPECTED_RESPONSE = f.read().encode()
-
-    REQUEST = GET1.encode()
+    with open(requests_folder + request[0], 'r') as f:
+        REQUEST = f.read().encode()
+    if request[1] == 'r':
+        with open(requests_folder + request[0] + response_postfix, 'r') as f:
+            EXPECTED_RESPONSE = f.read().encode()
+    else:
+        with open(requests_folder + request[0] + response_postfix, 'rb') as f:
+            EXPECTED_RESPONSE = f.read()
 
     num_clients = 1
     clients = []
@@ -44,14 +44,13 @@ for request in requests:
     # Send and echo
     for client in clients:
         client['socket'].sendall(REQUEST)
-        data = client['socket'].recv(1024)
-        assert data == EXPECTED_RESPONSE, "\nExpected\n------------------\n" + EXPECTED_RESPONSE.decode() + "\n----------------------\n" \
-               + "GET\n-----------------\n" + data.decode() + "\n-----------------------\n"
+        data = client['socket'].recv(10240)
+        assert data == EXPECTED_RESPONSE
 
     # Close
     for client in clients:
         client['socket'].close()
-    print("Test case " + request + " passed.")
+    print("Test case " + request[0] + " passed.")
     
 
 print("All tests passed.")

@@ -1,4 +1,4 @@
-
+#include <unordered_map>
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -10,7 +10,7 @@
 
 namespace ice {
 
-extern std::string base_directory;
+extern std::string content_directory;
 
 const std::string kHttpVersion = "HTTP/1.1";
 const std::string kServerInformation = "Server: ice";
@@ -18,12 +18,23 @@ const std::string kServerInformation = "Server: ice";
 struct ContentInformation {
   std::string content_path;
   std::string content_type;
+
+  ContentInformation(const std::string &path, const std::string &type):
+    content_path(path), content_type(type) {
+  }
 };
 
-void GetValidResponse(Response &response) {
+std::unordered_map<std::string, ContentInformation> content_map;
+
+void InitContentMapping() {
+  content_map.insert({"/", ContentInformation(content_directory + "home.html", "text/html")});
+  content_map.insert({"/favicon.ico", ContentInformation(content_directory + "ow.ico", "image/apng")});
+}
+
+void GetValidResponse(Response &response, const ContentInformation &content_information) {
   std::string data;
 
-  std::ifstream ifs(base_directory + "/content/home.html", std::ifstream::in | std::ifstream::binary);
+  std::ifstream ifs(content_information.content_path, std::ifstream::in | std::ifstream::binary);
   std::string content((std::istreambuf_iterator<char>(ifs)), \
                       (std::istreambuf_iterator<char>()));
 
@@ -37,7 +48,7 @@ void GetValidResponse(Response &response) {
   data.append("\n");
   data.append("Content-Length: " + std::to_string(content.size()));
   data.append("\n");
-  data.append("Content-Type: text/html");
+  data.append("Content-Type: " + content_information.content_type);
   data.append("\n");
   data.append("\n");
   data.append(content);
@@ -62,7 +73,7 @@ void GetErrorResponse(Response &response) {
 
 void GetResponse(const HttpRequest &http_request, Response &response) {
   if (http_request.valid) {
-    GetValidResponse(response);
+    GetValidResponse(response, content_map.at(http_request.Get("Url")));
   } else {
     GetErrorResponse(response);
   }
