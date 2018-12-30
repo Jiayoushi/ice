@@ -7,7 +7,7 @@ import atexit
 import time
 
 # Server
-server = subprocess.Popen(['../ice'])
+server = subprocess.Popen(['../ice', '..'])
 atexit.register(server.kill)
 
 time.sleep(1)

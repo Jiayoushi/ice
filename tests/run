@@ -2,5 +2,4 @@ cd ..
 make clean
 make
 cd tests
-#../ice &
 python3 test.py

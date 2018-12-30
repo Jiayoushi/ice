@@ -3,10 +3,14 @@
 
 #include "server.h"
 #include "network.h"
+#include "defs.h"
 
 namespace ice {
 
-Server::Server() {
+std::string base_directory;
+
+Server::Server(const std::string &kBaseDirectory) {
+  base_directory = kBaseDirectory;
 }
 
 Server::~Server() {
@@ -63,8 +67,7 @@ void Server::HandleClient(int client_fd) {
 
   Response response;
   GetResponse(client_info.http_request, response);
-
-  Write(client_fd, response.data.c_str(), response.data.size());
+  SendResponse(client_fd, response);
 }
 
 void Server::AddClient(int client_fd, const sockaddr_in &client_address) {
