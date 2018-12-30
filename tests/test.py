@@ -18,7 +18,7 @@ PORT = 8080
 
 requests_folder = 'requests/'
 response_postfix = '_response'
-requests = [('get_home', 'r'), ('get_ico', 'rb'), ('invalid_get', 'r')]
+requests = [('get_home', 'r'), ('get_ico', 'rb'), ('invalid_get', 'r'), ('unfound_url', 'r')]
 
 for request in requests:
     with open(requests_folder + request[0], 'r') as f:

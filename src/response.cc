@@ -11,9 +11,13 @@
 namespace ice {
 
 extern std::string content_directory;
-
 const std::string kHttpVersion = "HTTP/1.1";
 const std::string kServerInformation = "Server: ice";
+
+std::unordered_map<size_t, std::string> http_error_map({\
+{400, "Bad Request"},
+{404, "Not Found"}
+});
 
 struct ContentInformation {
   std::string content_path;
@@ -56,14 +60,14 @@ void GetValidResponse(Response &response, const ContentInformation &content_info
   response.responses.push_back(data);
 }
 
-void GetErrorResponse(Response &response) {
+void GetErrorResponse(Response &response, const size_t kHttpErrorCode) {
   std::string data;
 
   data.append(kHttpVersion);
   data.append(" ");
-  data.append(std::to_string(400));
+  data.append(std::to_string(kHttpErrorCode));
   data.append(" ");
-  data.append("Bad Request");
+  data.append(http_error_map.at(kHttpErrorCode));
   data.append("\n");
   data.append(kServerInformation);
   data.append("\n");
@@ -72,10 +76,12 @@ void GetErrorResponse(Response &response) {
 }
 
 void GetResponse(const HttpRequest &http_request, Response &response) {
-  if (http_request.valid) {
-    GetValidResponse(response, content_map.at(http_request.Get("Url")));
+  if (!http_request.valid) {
+    GetErrorResponse(response, 400);   
+  } else if (content_map.find(http_request.Get("Url")) == content_map.end()) {
+    GetErrorResponse(response, 404);
   } else {
-    GetErrorResponse(response);
+    GetValidResponse(response, content_map.at(http_request.Get("Url")));
   }
 }
 
