@@ -9,11 +9,22 @@
 
 namespace ice {
 
+// Error
+
+// Method
+// Url
+// Host
+// Accept
+// Connection
+// User-Agent
+// Accept-Encoding
+// Accept-Language
 struct HttpRequest {
+  bool valid;
   std::unordered_map<std::string, std::string> data;
 
   HttpRequest():
-    data() {
+    data(), valid(true) {
   }
 };
 

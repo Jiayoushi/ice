@@ -22,15 +22,20 @@ void ParseHttpMessage(const char *message, size_t msg_len, struct HttpRequest &h
   http_parser_init(parser, HTTP_REQUEST);
   parser->data = &http_request;
 
-  int nparsed = 0;
+  size_t nparsed = 0;
   nparsed = http_parser_execute(parser, &settings, message, msg_len);
+  if (nparsed != msg_len) {
+    //printf("Http Request Parsing Error: %s\n", \
+           http_errno_name(http_errno(parser->http_errno)));
+    http_request.valid = false;
+  }
 
   free(parser);
 }
 
 int OnUrlCallback(http_parser *parser, const char *at, size_t len) {
   HttpRequest *http_request = (HttpRequest *)parser->data;
-  http_request->data["url"] = std::string(at, len);
+  http_request->data["Url"] = std::string(at, len);
   return 0;
 }
 
@@ -54,6 +59,9 @@ int OnMessageComplete(http_parser *parser) {
 }
 
 int OnHeadersComplete(http_parser *parser) {
+  HttpRequest *http_request = (HttpRequest *)parser->data;
+  http_request->data["Method"] = std::string(http_method_str(http_method(parser->method)));
+
   return 0;
 }
 

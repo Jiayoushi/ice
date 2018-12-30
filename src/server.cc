@@ -10,13 +10,11 @@ Server::Server() {
 }
 
 Server::~Server() {
-  std::cout << "Server: destructs" << std::endl;
 }
 
 void Server::Connect() {
   listen_fd_ = SetUp();
   InitHttpParserSettings();
-  std::cout << "Server: set up success." << std::endl;
 }
 
 void Server::Loop() {

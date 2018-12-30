@@ -9,7 +9,6 @@ import time
 # Server
 server = subprocess.Popen(['../ice'])
 atexit.register(server.kill)
-print(server.pid)
 
 time.sleep(1)
 
@@ -19,7 +18,7 @@ PORT = 8080
 
 requests_folder = 'requests/'
 response_postfix = '_response'
-requests = ['realistic']
+requests = ['realistic', 'invalid_get']
 
 
 for request in requests:
@@ -31,7 +30,7 @@ for request in requests:
 
     REQUEST = GET1.encode()
 
-    num_clients = 10
+    num_clients = 1
     clients = []
     for i in range(num_clients):
         clients.append({'host': str(ipaddress.ip_address(BASE_HOST) + i), \
@@ -52,3 +51,7 @@ for request in requests:
     # Close
     for client in clients:
         client['socket'].close()
+    print("Test case " + request + " passed.")
+    
+
+print("All tests passed.")
