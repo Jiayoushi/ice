@@ -8,8 +8,7 @@
 namespace ice {
 
 struct Response {
-  std::string content;
-  size_t size;
+  std::string data;
 };
 
 void GetResponse(const HttpRequest &http_request, Response &response);

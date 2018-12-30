@@ -1,0 +1,10 @@
+HTTP/1.1 200 OK
+Server: ice
+Content-Length: 90
+
+<html>
+<header><title>Ice Website</title></header>
+<body>
+Merry Christmas
+</body>
+</html>

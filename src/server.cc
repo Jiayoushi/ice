@@ -66,7 +66,7 @@ void Server::HandleClient(int client_fd) {
   Response response;
   GetResponse(client_info.http_request, response);
 
-  Write(client_fd, response.content.c_str(), response.content.size());
+  Write(client_fd, response.data.c_str(), response.data.size());
 }
 
 void Server::AddClient(int client_fd, const sockaddr_in &client_address) {
