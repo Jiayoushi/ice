@@ -26,6 +26,8 @@ void GetValidResponse(const HttpRequest &http_request, Response &response) {
   data.append("\n");
   data.append("Content-Length: " + std::to_string(content.size()));
   data.append("\n");
+  data.append("Content-Type: text/html");
+  data.append("\n");
   data.append("\n");
   data.append(content);
 }
