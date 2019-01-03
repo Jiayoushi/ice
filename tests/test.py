@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import sys
 import socket
 import ipaddress
 import subprocess
@@ -15,10 +16,11 @@ time.sleep(1)
 # Client
 BASE_HOST = '127.0.0.1'
 PORT = 8080
+NUM_OF_CLIENTS = 1
 
 requests_folder = 'requests/'
 response_postfix = '_response'
-requests = [('get_home', 'r'), ('get_ico', 'rb'), ('invalid_get', 'r'), ('unfound_url', 'r')]
+requests = [('get_home', 'r'), ('get_ico', 'rb'), ('invalid_get', 'r'), ('unfound_url', 'r'), ('get_cgi', 'r')]
 
 for request in requests:
     with open(requests_folder + request[0], 'r') as f:
@@ -30,7 +32,7 @@ for request in requests:
         with open(requests_folder + request[0] + response_postfix, 'rb') as f:
             EXPECTED_RESPONSE = f.read()
 
-    num_clients = 1
+    num_clients = NUM_OF_CLIENTS
     clients = []
     for i in range(num_clients):
         clients.append({'host': str(ipaddress.ip_address(BASE_HOST) + i), \
@@ -45,7 +47,13 @@ for request in requests:
     for client in clients:
         client['socket'].sendall(REQUEST)
         data = client['socket'].recv(10240)
-        assert data == EXPECTED_RESPONSE
+        if data != EXPECTED_RESPONSE: 
+            print('Test case ' + request[0] + ' failed.')
+            print('Expect: -------------------')
+            print(EXPECTED_RESPONSE)
+            print('Get: ----------------------')
+            print(data)
+            sys.exit(1)
 
     # Close
     for client in clients:

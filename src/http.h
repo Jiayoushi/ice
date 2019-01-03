@@ -17,6 +17,14 @@ namespace ice {
 // User-Agent
 // Accept-Encoding
 // Accept-Language
+
+// Url-Schema
+// Url-Host
+// Url-Port
+// Url-Path
+// Url-Query
+// Url-Fragment
+// Url-UserInfo
 struct HttpRequest {
   bool valid;
   std::unordered_map<std::string, std::string> data;

@@ -75,11 +75,21 @@ void GetErrorResponse(Response &response, const size_t kHttpErrorCode) {
   response.responses.push_back(data);
 }
 
+void GetCgiResponse(const HttpRequest &http_request, Response &response) {
+  std::string data;
+
+  response.responses.push_back(data);
+}
+
 void GetResponse(const HttpRequest &http_request, Response &response) {
   if (!http_request.valid) {
     GetErrorResponse(response, 400);   
   } else if (content_map.find(http_request.Get("Url")) == content_map.end()) {
-    GetErrorResponse(response, 404);
+    if (http_request.Get("Url").compare(0, 5, "/cgi/") == 0) {
+      GetCgiResponse(http_request, response);
+    } else {
+      GetErrorResponse(response, 404);
+    }
   } else {
     GetValidResponse(response, content_map.at(http_request.Get("Url")));
   }
