@@ -1,7 +1,8 @@
-#include <iostream>
-#include <stdio.h>
-
 #include "server.h"
+
+#include <stdio.h>
+#include <iostream>
+
 #include "network.h"
 #include "defs.h"
 

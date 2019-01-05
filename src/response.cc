@@ -1,12 +1,12 @@
+#include "response.h"
+
 #include <unordered_map>
 #include <iostream>
 #include <fstream>
 #include <vector>
 
-#include "response.h"
 #include "network.h"
 #include "defs.h"
-
 
 namespace ice {
 

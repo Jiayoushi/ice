@@ -1,3 +1,5 @@
+#include "network.h"
+
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
@@ -6,8 +8,6 @@
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-#include "network.h"
 
 namespace ice {
 

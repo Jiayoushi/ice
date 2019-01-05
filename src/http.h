@@ -1,7 +1,6 @@
 #ifndef ICE_HTTP_H_
 #define ICE_HTTP_H_
 
-
 #include <string>
 #include <unordered_map>
 

@@ -1,8 +1,8 @@
+#include "http.h"
+
 #include <string.h>
 #include <stdlib.h>
 #include <iostream>
-
-#include "http.h"
 
 namespace ice {
 
