@@ -28,24 +28,24 @@ struct ClientInfo {
 };
 
 class Server {
-  public:
-    Server(const std::string &kBaseDirectory);
-    ~Server();
-    
-    void Run();
+ public:
+  Server(const std::string &kBaseDirectory);
+  ~Server();
 
-  private:
-    const size_t kMaxMessageLen = 2048;
+  void Run();
 
-    void Connect();
-    void Loop();
+ private:
+  const size_t kMaxMessageLen = 2048;
+
+  void Connect();
+  void Loop();
    
-    void AddClient(int client_fd, const sockaddr_in &client_address);
-    void HandleClient(int client_fd);
-    void RemoveClient(int client_fd);
+  void AddClient(int client_fd, const sockaddr_in &client_address);
+  void HandleClient(int client_fd);
+  void RemoveClient(int client_fd);
 
-    int listen_fd_;
-    std::unordered_map<int, ClientInfo> client_infos_;
+  int listen_fd_;
+  std::unordered_map<int, ClientInfo> client_infos_;
 };
 
 }
