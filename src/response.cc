@@ -109,10 +109,13 @@ namespace cgi {
 CgiInfo::CgiInfo(const HttpRequest &http_request) {
   int argc = 1;
 
-  argv[0] = &(GetFilenameFromUrl(http_request.Get("Url")))[0];
+  std::string filename = GetFilenameFromUrl(http_request.Get("Url"));
+  std::string content_length = "CONTENT_LENGTH=" + http_request.Get("Content-Length");
+
+  argv[0] = &(filename[0]);
   argv[1] = nullptr; 
 
-  envp[0] = &("CONTENT_LENGTH=" + http_request.Get("Content-Length"))[0];
+  envp[0] = &(content_length[0]);
   envp[1] = nullptr;
 
   // Fork and stuff
@@ -127,10 +130,10 @@ std::string CgiInfo::GetFilenameFromUrl(const std::string &url) {
   // n is the position one character before ?
   std::string::size_type n = url.find('?');
   if (n == std::string::npos) {
-    return base_directory + "/" + url;
+    return base_directory + url;
   } else {
     // url.substr(n) gets rid of the y part of x?y
-    return base_directory + "/" + url.substr(n);
+    return base_directory + url.substr(0, n);
   }
 }
 
