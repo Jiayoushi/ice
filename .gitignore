@@ -37,3 +37,6 @@ CMakeFiles/
 CMakeCache.txt
 cmake_install.cmake
 ice
+
+# Temporary vim swap files
+*.swp

@@ -14,7 +14,7 @@ extern std::string content_directory;
 const std::string kHttpVersion = "HTTP/1.1";
 const std::string kServerInformation = "Server: ice";
 
-std::unordered_map<size_t, std::string> http_error_map({\
+std::unordered_map<size_t, std::string> http_error_map({
 {400, "Bad Request"},
 {404, "Not Found"}
 });
@@ -78,6 +78,8 @@ void GetErrorResponse(Response &response, const size_t kHttpErrorCode) {
 void GetCgiResponse(const HttpRequest &http_request, Response &response) {
   std::string data;
 
+  cgi::CgiInfo cgi_info(http_request);
+
   response.responses.push_back(data);
 }
 
@@ -85,7 +87,7 @@ void GetResponse(const HttpRequest &http_request, Response &response) {
   if (!http_request.valid) {
     GetErrorResponse(response, 400);   
   } else if (content_map.find(http_request.Get("Url")) == content_map.end()) {
-    if (http_request.Get("Url").compare(0, 5, "/cgi/") == 0) {
+    if (http_request.Get("Url").compare(0, 9, "/cgi-bin/") == 0) {
       GetCgiResponse(http_request, response);
     } else {
       GetErrorResponse(response, 404);
@@ -99,6 +101,40 @@ void SendResponse(int client_fd, const Response &response) {
   for (const std::string &r: response.responses) {
     Write(client_fd, r.c_str(), r.size());
   }
+}
+
+
+namespace cgi {
+
+CgiInfo::CgiInfo(const HttpRequest &http_request) {
+  int argc = 1;
+
+  argv[0] = &(GetFilenameFromUrl(http_request.Get("Url")))[0];
+  argv[1] = nullptr; 
+
+  envp[0] = &("CONTENT_LENGTH=" + http_request.Get("Content-Length"))[0];
+  envp[1] = nullptr;
+
+  // Fork and stuff
+  
+}
+
+std::string CgiInfo::GetFilenameFromUrl(const std::string &url) {
+  // The filename is the path to the cgi script.
+  // /cgi-bin/ should be project home directory + cgi-bin directory
+  // Then append the filename, with ? at the end.
+
+  // n is the position one character before ?
+  std::string::size_type n = url.find('?');
+  if (n == std::string::npos) {
+    return base_directory + "/" + url;
+  } else {
+    // url.substr(n) gets rid of the y part of x?y
+    return base_directory + "/" + url.substr(n);
+  }
+}
+
+
 }
 
 }

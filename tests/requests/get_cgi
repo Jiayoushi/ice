@@ -1,4 +1,4 @@
-GET /cgi/api.php?action=opensearch&search=HT&namespace=0&suggest= HTTP/1.1
+GET /cgi-bin/api.php?action=opensearch&search=HT&namespace=0&suggest= HTTP/1.1
 Host: en.wikipedia.org
 Connection: keep-alive
 X-Requested-With: XMLHttpRequest

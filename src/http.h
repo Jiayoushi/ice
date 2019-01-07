@@ -27,13 +27,18 @@ namespace ice {
 struct HttpRequest {
   bool valid;
   std::unordered_map<std::string, std::string> data;
+  std::string empty_string;
 
   HttpRequest():
     data(), valid(true) {
   }
 
   const std::string & Get(const std::string &key) const {
-    return data.at(key);
+    if (data.find(key) == data.end()) {
+      return empty_string;
+    } else {
+      return data.at(key);
+    }
   }
 };
 

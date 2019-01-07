@@ -15,5 +15,25 @@ struct Response {
 void InitContentMapping();
 void GetResponse(const HttpRequest &http_request, Response &response);
 void SendResponse(int client_fd, const Response &response);
+
+namespace cgi {
+
+const size_t kMaxCgiArgumentsNum = 128;
+
+class CgiInfo {
+ public:
+  CgiInfo(const HttpRequest &http_request);
+
+  std::string GetFilenameFromUrl(const std::string &url);
+
+ private:
+  char *argv[kMaxCgiArgumentsNum];
+  char *envp[kMaxCgiArgumentsNum];
+  char *body;
+};
+
+
+}
+
 }
 #endif

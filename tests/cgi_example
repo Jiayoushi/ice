@@ -1,0 +1,159 @@
+Parent: Heading to select() loop.
+Got from CGI: 
+-----------------------------------------------------------------
+HTTP/1.1 200 OK
+Server: Liso/1.0
+Content-type: text/html
+
+
+<H3>Current Working Directory:</H3>
+/home/jyshi/Downloads/cgi/CGI
+
+
+<H3>Command Line Arguments:</H3>
+
+['./cgi_script.py']
+
+
+<H3>Form Contents:</H3>
+<DL>
+<DT>action: <i>&lt;type 'instance'&gt;</i>
+<DD>MiniFieldStorage('action', 'opensearch')
+<DT>namespace: <i>&lt;type 'instance'&gt;</i>
+<DD>MiniFieldStorage('namespace', '0')
+<DT>search: <i>&lt;type 'instance'&gt;</i>
+<DD>MiniFieldStorage('search', 'HT')
+</DL>
+
+
+<H3>Shell Environment:</H3>
+<DL>
+<DT> CONTENT-TYPE <DD> 
+<DT> CONTENT_LENGTH <DD> 
+<DT> GATEWAY_INTERFACE <DD> CGI/1.1
+<DT> HOST_NAME <DD> en.wikipedia.org
+<DT> HTTP_ACCEPT <DD> application/json, text/javascript, */*; q=0.01
+<DT> HTTP_ACCEPT_CHARSET <DD> ISO-8859-1,utf-8;q=0.7,*;q=0.3
+<DT> HTTP_ACCEPT_ENCODING <DD> gzip,deflate,sdch
+<DT> HTTP_ACCEPT_LANGUAGE <DD> en-US,en;q=0.8
+<DT> HTTP_CONNECTION <DD> keep-alive
+<DT> HTTP_COOKIE <DD> clicktracking-session=v7JnLVqLFpy3bs5hVDdg4Man4F096mQmY; mediaWiki.user.bucket%3Aext.articleFeedback-tracking=8%3Aignore; mediaWiki.user.bucket%3Aext.articleFeedback-options=8%3Ashow; mediaWiki.user.bucket:ext.articleFeedback-tracking=8%3Aignore; mediaWiki.user.bucket:ext.articleFeedback-options=8%3Ashow
+<DT> HTTP_HOST <DD> en.wikipedia.org
+<DT> HTTP_REFERER <DD> http://en.wikipedia.org/w/index.php?title=Special%3ASearch&amp;search=test+wikipedia+search
+<DT> HTTP_USER_AGENT <DD> Mozilla/5.0 (X11; Linux i686) AppleWebKit/535.1 (KHTML, like Gecko) Chrome/14.0.835.186 Safari/535.1
+<DT> QUERY_STRING <DD> action=opensearch&amp;search=HT&amp;namespace=0&amp;suggest=
+<DT> REMOTE_ADDR <DD> 128.2.215.22
+<DT> REMOTE_HOST <DD> gs9671.sp.cs.cmu.edu
+<DT> REQUEST_METHOD <DD> GET
+<DT> SCRIPT_NAME <DD> /w/api.php
+<DT> SERVER_PORT <DD> 80
+<DT> SERVER_PROTOCOL <DD> HTTP/1.1
+<DT> SERVER_SOFTWARE <DD> Liso/1.0
+</DL>
+
+
+<H3>These environment variables could have been set:</H3>
+<UL>
+<LI>AUTH_TYPE
+<LI>CONTENT_LENGTH
+<LI>CONTENT_TYPE
+<LI>DATE_GMT
+<LI>DATE_LOCAL
+<LI>DOCUMENT_NAME
+<LI>DOCUMENT_ROOT
+<LI>DOCUMENT_URI
+<LI>GATEWAY_INTERFACE
+<LI>LAST_MODIFIED
+<LI>PATH
+<LI>PATH_INFO
+<LI>PATH_TRANSLATED
+<LI>QUERY_STRING
+<LI>REMOTE_ADDR
+<LI>REMOTE_HOST
+<LI>REMOTE_IDENT
+<LI>REMOTE_USER
+<LI>REQUEST_METHOD
+<LI>SCRIPT_NAME
+<LI>SERVER_NAME
+<LI>SERVER_PORT
+<LI>SERVER_PROTOCOL
+<LI>SERVER_ROOT
+<LI>SERVER_SOFTWARE
+</UL>
+In addition, HTTP headers sent by the server may be passed in the
+environment as well.  Here are some common variable names:
+<UL>
+<LI>HTTP_ACCEPT
+<LI>HTTP_CONNECTION
+<LI>HTTP_HOST
+<LI>HTTP_PRAGMA
+<LI>HTTP_REFERER
+<LI>HTTP_USER_AGENT
+</UL>
+
+<H3>What follows is a test, not an actual exception:</H3>
+
+<H3>Traceback (most recent call last):</H3>
+<PRE>  File "/usr/lib/python2.7/cgi.py", line 913, in test
+    g()
+  File "/usr/lib/python2.7/cgi.py", line 911, in g
+    f()
+  File "/usr/lib/python2.7/cgi.py", line 909, in f
+    exec "testing print_exception() -- &lt;I&gt;italics?&lt;/I&gt;"
+  File "&lt;string&gt;", line 1
+    testing print_exception() -- &lt;I&gt;italics?&lt;/I&gt;
+                          ^
+<B>SyntaxError: invalid syntax
+</B></PRE>
+<H1>Second try with a small maxlen...</H1>
+
+<H3>Current Working Directory:</H3>
+/home/jyshi/Downloads/cgi/CGI
+
+
+<H3>Command Line Arguments:</H3>
+
+['./cgi_script.py']
+
+
+<H3>Form Contents:</H3>
+<DL>
+<DT>action: <i>&lt;type 'instance'&gt;</i>
+<DD>MiniFieldStorage('action', 'opensearch')
+<DT>namespace: <i>&lt;type 'instance'&gt;</i>
+<DD>MiniFieldStorage('namespace', '0')
+<DT>search: <i>&lt;type 'instance'&gt;</i>
+<DD>MiniFieldStorage('search', 'HT')
+</DL>
+
+
+<H3>Shell Environment:</H3>
+<DL>
+<DT> CONTENT-TYPE <DD> 
+<DT> CONTENT_LENGTH <DD> 
+<DT> GATEWAY_INTERFACE <DD> CGI/1.1
+<DT> HOST_NAME <DD> en.wikipedia.org
+<DT> HTTP_ACCEPT <DD> application/json, text/javascript, */*; q=0.01
+<DT> HTTP_ACCEPT_CHARSET <DD> ISO-8859-1,utf-8;q=0.7,*;q=0.3
+<DT> HTTP_ACCEPT_ENCODING <DD> gzip,deflate,sdch
+<DT> HTTP_ACCEPT_LANGUAGE <DD> en-US,en;q=0.8
+<DT> HTTP_CONNECTION <DD> keep-alive
+<DT> HTTP_COOKIE <DD> clicktracking-session=v7JnLVqLFpy3bs5hVDdg4Man4F096mQmY; mediaWiki.user.bucket%3Aext.articleFeedback-tracking=8%3Aignore; mediaWiki
+Got from CGI: .
+Got from CGI: user.bucket%3Aext.articleFeedback-options=8%3Ashow; mediaWiki.user.bucket:ext.articleFeedback-tracking=8%3Aignore; mediaWiki.user.bucket:ext.articleFeedback-options=8%3Ashow
+<DT> HTTP_HOST <DD> en.wikipedia.org
+<DT> HTTP_REFERER <DD> http://en.wikipedia.org/w/index.php?title=Special%3ASearch&amp;search=test+wikipedia+search
+<DT> HTTP_USER_AGENT <DD> Mozilla/5.0 (X11; Linux i686) AppleWebKit/535.1 (KHTML, like Gecko) Chrome/14.0.835.186 Safari/535.1
+<DT> QUERY_STRING <DD> action=opensearch&amp;search=HT&amp;namespace=0&amp;suggest=
+<DT> REMOTE_ADDR <DD> 128.2.215.22
+<DT> REMOTE_HOST <DD> gs9671.sp.cs.cmu.edu
+<DT> REQUEST_METHOD <DD> GET
+<DT> SCRIPT_NAME <DD> /w/api.php
+<DT> SERVER_PORT <DD> 80
+<DT> SERVER_PROTOCOL <DD> HTTP/1.1
+<DT> SERVER_SOFTWARE <DD> Liso/1.0
+</DL>
+
+
+CGI spawned process returned with EOF as expected.
+
