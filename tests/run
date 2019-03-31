@@ -3,3 +3,4 @@ make clean
 make
 cd tests
 python3 test.py
+ps

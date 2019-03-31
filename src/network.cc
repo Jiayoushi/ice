@@ -80,7 +80,6 @@ int Read(int client_fd, char *buffer, const size_t length) {
   int length_read = read(client_fd, buffer, length);
   if (length_read < 0) {
     perror("Error: read");
-    exit(EXIT_FAILURE);
   }
 
   return length_read;
@@ -90,16 +89,15 @@ int Write(int client_fd, const char *buffer, const size_t length) {
   int length_write = write(client_fd, buffer, length);
   if (length_write < 0) {
     perror("Error: write");
-    exit(EXIT_FAILURE);
   }
 
   return length_write;
 }
 
-void Select(int fd_limit, fd_set *read_fds, \
-            fd_set *write_fds, fd_set *exceptions,       \
+void Select(int fd_limit, fd_set *read_fds,
+            fd_set *write_fds, fd_set *exceptions,
             struct timeval *timeout) {
-  if (select(fd_limit, read_fds, \
+  if (select(fd_limit, read_fds,
              write_fds, exceptions, timeout) < 0) {
     perror("Error: select");
     exit(EXIT_FAILURE);

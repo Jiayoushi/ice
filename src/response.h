@@ -16,24 +16,25 @@ void InitContentMapping();
 void GetResponse(const HttpRequest &http_request, Response &response);
 void SendResponse(int client_fd, const Response &response);
 
-namespace cgi {
-
-const size_t kMaxCgiArgumentsNum = 128;
 
 class CgiInfo {
+ static const size_t kMaxCgiArgumentsNum = 128;
  public:
   CgiInfo(const HttpRequest &http_request);
-
-  std::string GetFilenameFromUrl(const std::string &url);
-
+  ~CgiInfo();
+  const char *GetScriptName() const; 
+  char **GetArgv();
+  char **GetEnvp();
+  
  private:
+  std::string GetScriptNameFromUrl(const std::string &url);
+
+  size_t argc;
+  size_t envc;
   char *argv[kMaxCgiArgumentsNum];
   char *envp[kMaxCgiArgumentsNum];
   char *body;
 };
-
-
-}
 
 }
 #endif

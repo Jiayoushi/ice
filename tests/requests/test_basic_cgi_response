@@ -1,0 +1,8 @@
+HTTP/1.1 200 OK
+Server: ice
+Content-Length: 10
+Content-Type: text/html
+
+../cgi-bin/cgi_basic_test
+CONTENT_LENGTH=
+Hello CGI!

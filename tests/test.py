@@ -20,24 +20,22 @@ NUM_OF_CLIENTS = 1
 
 requests_folder = 'requests/'
 response_postfix = '_response'
-requests = [('get_home', 'r'), ('get_ico', 'rb'), ('invalid_get', 'r'), ('unfound_url', 'r'), ('get_cgi', 'r')]
+requests = [('get_home', 'r'), ('get_ico', 'rb'), ('invalid_get', 'r'), ('unfound_url', 'r'), ('test_basic_cgi', 'r')]
 
 for request in requests:
     with open(requests_folder + request[0], 'r') as f:
         REQUEST = f.read().encode()
-    if request[1] == 'r':
-        with open(requests_folder + request[0] + response_postfix, 'r') as f:
-            EXPECTED_RESPONSE = f.read().encode()
-    else:
-        with open(requests_folder + request[0] + response_postfix, 'rb') as f:
-            EXPECTED_RESPONSE = f.read()
+        with open(requests_folder + request[0] + response_postfix, request[1]) as f:
+            if request[1] == 'r':
+                EXPECTED_RESPONSE = f.read().encode()
+            else:
+                EXPECTED_RESPONSE = f.read()
 
     num_clients = NUM_OF_CLIENTS
     clients = []
     for i in range(num_clients):
         clients.append({'host': str(ipaddress.ip_address(BASE_HOST) + i), \
-                        'socket':  socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                       })
+                        'socket':  socket.socket(socket.AF_INET, socket.SOCK_STREAM)})
     # Connect
     for client in clients:
         host = client['host']
