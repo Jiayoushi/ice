@@ -23,12 +23,15 @@ class CgiInfo {
   CgiInfo(const HttpRequest &http_request);
   ~CgiInfo();
   const char *GetScriptName() const; 
+  const char *GetBody() const;
+  const char GetBodySize() const;
   char **GetArgv();
   char **GetEnvp();
   
  private:
   std::string GetScriptNameFromUrl(const std::string &url);
 
+  size_t body_size;
   size_t argc;
   size_t envc;
   char *argv[kMaxCgiArgumentsNum];

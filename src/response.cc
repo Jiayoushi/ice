@@ -18,6 +18,8 @@ extern std::string content_directory;
 const std::string kHttpVersion = "HTTP/1.1";
 const std::string kServerInformation = "Server: ice";
 
+const size_t kMaxBufSize = 1024;
+
 std::unordered_map<size_t, std::string> http_error_map({
   {400, "Bad Request"},
   {404, "Not Found"}
@@ -26,25 +28,32 @@ std::unordered_map<size_t, std::string> http_error_map({
 struct ContentInformation {
   std::string content_path;
   std::string content_type;
+  std::string content;
 
-  ContentInformation(const std::string &path, const std::string &type):
-    content_path(path), content_type(type) {
+  ContentInformation(const std::string &path, const std::string &type, bool cgi):
+    content_path(path), content_type(type), content() {
+      if (cgi == false) {
+        std::ifstream ifs(path, std::ifstream::in | std::ifstream::binary);
+        content = std::string((std::istreambuf_iterator<char>(ifs)),
+                              (std::istreambuf_iterator<char>()));
+      }
+  }
+
+  void AddContent(const char *c) {
+    content = std::string(c);
   }
 };
 
 std::unordered_map<std::string, ContentInformation> content_map;
 
 void InitContentMapping() {
-  content_map.insert({"/", ContentInformation(content_directory + "home.html", "text/html")});
-  content_map.insert({"/favicon.ico", ContentInformation(content_directory + "ow.ico", "image/apng")});
+  content_map.insert({"/", ContentInformation(content_directory + "home.html", "text/html", false)});
+  content_map.insert({"/favicon.ico", ContentInformation(content_directory + "ow.ico", "image/apng", false)});
+  content_map.insert({"/cgi-bin/cgi_basic_test", ContentInformation("/cgi-bin/cgi_basic_test", "text/html", true)});
 }
 
 void GetValidResponse(Response &response, const ContentInformation &content_information) {
   std::string data;
-
-  std::ifstream ifs(content_information.content_path, std::ifstream::in | std::ifstream::binary);
-  std::string content((std::istreambuf_iterator<char>(ifs)), \
-                      (std::istreambuf_iterator<char>()));
 
   data.append(kHttpVersion);
   data.append(" ");
@@ -54,12 +63,13 @@ void GetValidResponse(Response &response, const ContentInformation &content_info
   data.append("\n");
   data.append(kServerInformation);
   data.append("\n");
-  data.append("Content-Length: " + std::to_string(content.size()));
+  data.append("Content-Length: " + 
+               std::to_string(content_information.content.size()));
   data.append("\n");
   data.append("Content-Type: " + content_information.content_type);
   data.append("\n");
   data.append("\n");
-  data.append(content);
+  data.append(content_information.content);
 
   response.responses.push_back(data);
 }
@@ -91,20 +101,27 @@ int GetCgiResponse(const HttpRequest &http_request, Response &response) {
     return -1;
   }
 
-  pid_t child_pid = fork();
-  if (child_pid < 0) {
+  CgiInfo cgi_info(http_request);
+  pid_t p = fork();
+  if (p < 0) {
     perror("GetCgiReseponse: fork failed");
     return -1;
-  } else if (child_pid == 0) {
+  } else if (p == 0) {
     // Read message body from parent using stdin
     close(write_to_child[1]); 
-    dup2(STDIN_FILENO, write_to_child[0]);
+    dup2(write_to_child[0], STDIN_FILENO);
+    char buf[kMaxBufSize];
+    int bytes_read = read(STDIN_FILENO, buf, kMaxBufSize);
+    if (bytes_read < 0) {
+      perror("GetCgiResponse: child read");
+    } else {
+      buf[bytes_read] = '\0';
+    }
 
     // Send response to parent using stdout
-    close(read_from_child[1]);
-    dup2(STDOUT_FILENO, write_to_child[1]);
+    close(read_from_child[0]);
+    dup2(read_from_child[1], STDOUT_FILENO);
    
-    CgiInfo cgi_info(http_request);
     // Execve
     if (execve(cgi_info.GetScriptName(), 
                cgi_info.GetArgv(), cgi_info.GetEnvp()) < 0) {
@@ -114,7 +131,15 @@ int GetCgiResponse(const HttpRequest &http_request, Response &response) {
   }
 
   // Pass any message body (especially for POSTs) via stdin to the CGI executable
-  close(write_to_child[0]); 
+  close(write_to_child[0]);
+  if (cgi_info.GetBody() != nullptr) {
+    int bytes_write = write(write_to_child[1], 
+                        cgi_info.GetBody(), cgi_info.GetBodySize());
+    if (bytes_write < 0) {
+      perror("GetCgiResponse: write to child");
+    }
+  }
+  close(write_to_child[1]);
 
   if (wait(nullptr) < 0) {
     perror("GetCgiResponse: wait failed");
@@ -122,17 +147,17 @@ int GetCgiResponse(const HttpRequest &http_request, Response &response) {
 
   // Read from child
   close(read_from_child[1]);
-  char *response_content = new char[1024];
-  int bytes_read = read(read_from_child[0], response_content, 1024);
+  char content[kMaxBufSize];
+  int bytes_read = read(read_from_child[0], content, kMaxBufSize);
   if (bytes_read < 0) {
     perror("GetCgiResponse: Read from child failed");
   } else {
-    response_content[bytes_read] = '\0';
-    response.responses.push_back(std::string(response_content));
-    delete[] response_content;
-  }
+    content[bytes_read] = '\0';
 
-  close(write_to_child[1]);
+    ContentInformation content_information = content_map.at(http_request.Get("Url"));
+    content_information.AddContent(content);
+    GetValidResponse(response, content_information);
+  }
   close(read_from_child[0]);
   return 0;
 }
@@ -141,16 +166,16 @@ void GetResponse(const HttpRequest &http_request, Response &response) {
   if (!http_request.valid) {
     GetErrorResponse(response, 400);   
   } else if (content_map.find(http_request.Get("Url")) == content_map.end()) {
+    GetErrorResponse(response, 404);
+  } else {
     // Any url that starts with /cgi-bin/ should be handled with a cgi response
     if (http_request.Get("Url").compare(0, 9, "/cgi-bin/") == 0) {
       if (GetCgiResponse(http_request, response) < 0) {
         GetErrorResponse(response, 500);
       }
     } else {
-      GetErrorResponse(response, 404);
+      GetValidResponse(response, content_map.at(http_request.Get("Url")));
     }
-  } else {
-    GetValidResponse(response, content_map.at(http_request.Get("Url")));
   }
 }
 
@@ -162,7 +187,7 @@ void SendResponse(int client_fd, const Response &response) {
 
 
 CgiInfo::CgiInfo(const HttpRequest &http_request):
-  argc(0), envc(0), body(nullptr) {
+  body_size(0), argc(0), envc(0), body(nullptr) {
 
   ++argc;
   const std::string &script_name = GetScriptNameFromUrl(http_request.Get("Url"));
@@ -190,6 +215,14 @@ CgiInfo::~CgiInfo() {
 
 const char *CgiInfo::GetScriptName() const {
   return argv[0];
+}
+
+const char *CgiInfo::GetBody() const {
+  return body;
+}
+
+const char CgiInfo::GetBodySize() const {
+  return body_size;
 }
 
 char **CgiInfo::GetArgv() {
