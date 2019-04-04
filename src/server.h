@@ -31,7 +31,8 @@ class Server {
    
   void AcceptClient(int listen_fd);
   void RemoveClient(int client_fd);
-  HandlerResult HandleClient(ClientInfo &ci);
+  void HandleClient(int fd);
+  int ReadClient(int client_fd, char *buf, int buf_size);
 
   int listen_fd_;
   ClientMap client_map_;
