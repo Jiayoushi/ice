@@ -46,11 +46,15 @@ void Server::Loop() {
 
           FD_SET(client_fd, &active_fds);
         } else {
-          HandleClient(fd);
-          RemoveClient(fd);
-
-          Close(fd);
-          FD_CLR(fd, &active_fds);
+          ResponseStatus rs = HandleClient(fd);
+          //if (rs == kWaitForCgi) {
+            // Do nothing
+          //} else {
+            // Error or a valid response
+            RemoveClient(fd);
+            Close(fd);
+            FD_CLR(fd, &active_fds);
+          //}
         }
       }
     }
@@ -62,7 +66,7 @@ void Server::Run() {
   Loop();
 }
 
-void Server::HandleClient(int client_fd) {
+ResponseStatus Server::HandleClient(int client_fd) {
   ClientInfo &client_info = client_infos_[client_fd];
   char message[kMaxMessageLen];
   int message_len = Read(client_info.client_fd, message, kMaxMessageLen);
@@ -70,8 +74,15 @@ void Server::HandleClient(int client_fd) {
   ParseHttpMessage(message, message_len, client_info.http_request);
 
   Response response;
-  GetResponse(client_info.http_request, response);
-  SendResponse(client_fd, response);
+  ResponseStatus rs = GetResponse(client_info.http_request, response);
+  if (rs == kNormalResponseCompleted) {
+    SendResponse(client_fd, response);
+  } else if (rs == kWaitForCgi) {
+    SendResponse(client_fd, response);
+  } else {
+    perror("Server failed to deliver a reponse");
+  }
+  return rs;
 }
 
 void Server::AddClient(int client_fd, const sockaddr_in &client_address) {

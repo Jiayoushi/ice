@@ -12,16 +12,22 @@ struct Response {
   std::vector<std::string> responses;
 };
 
-void InitContentMapping();
-void GetResponse(const HttpRequest &http_request, Response &response);
-void SendResponse(int client_fd, const Response &response);
+enum ResponseStatus {
+  kNormalResponseCompleted = 0,  // Either a ok response or a error response
+  kWaitForCgi = 1, // Need to wait for cgi signal
+  kInternalError = 2,  // Server has internal error
+}; 
 
+void InitContentMapping();
+ResponseStatus GetResponse(const HttpRequest &http_request, Response &response);
+void SendResponse(int client_fd, const Response &response);
 
 class CgiInfo {
  static const size_t kMaxCgiArgumentsNum = 128;
  public:
   CgiInfo(const HttpRequest &http_request);
   ~CgiInfo();
+
   const char *GetScriptName() const; 
   const char *GetBody() const;
   const char GetBodySize() const;

@@ -152,19 +152,23 @@ int GetCgiResponse(const HttpRequest &http_request, Response &response) {
   return 0;
 }
 
-void GetResponse(const HttpRequest &http_request, Response &response) {
+ResponseStatus GetResponse(const HttpRequest &http_request, Response &response) {
   if (!http_request.valid) {
     GetErrorResponse(response, 400);   
   } else if (http_request.Get("Url").compare(0, 9, "/cgi-bin/") == 0) {
     // Any url that starts with /cgi-bin/ should be handled with a cgi response
     if (GetCgiResponse(http_request, response) < 0) {
       GetErrorResponse(response, 500);
+    } else {
+      return kWaitForCgi;
     }
   } else if (content_map.find(http_request.Get("Url")) != content_map.end()) {
     GetValidResponse(response, content_map.at(http_request.Get("Url")));
   } else {
     GetErrorResponse(response, 404);
   }
+
+  return kNormalResponseCompleted;
 }
 
 void SendResponse(int client_fd, const Response &response) {

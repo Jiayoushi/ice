@@ -41,11 +41,13 @@ class Server {
   void Loop();
    
   void AddClient(int client_fd, const sockaddr_in &client_address);
-  void HandleClient(int client_fd);
+  ResponseStatus HandleClient(int client_fd);
   void RemoveClient(int client_fd);
 
   int listen_fd_;
   std::unordered_map<int, ClientInfo> client_infos_;
+
+  
 };
 
 }
