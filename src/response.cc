@@ -18,11 +18,11 @@ extern std::string content_directory;
 const std::string kHttpVersion = "HTTP/1.1";
 const std::string kServerInformation = "Server: ice";
 
-const size_t kMaxBufSize = 1024;
 
 std::unordered_map<size_t, std::string> http_error_map({
   {400, "Bad Request"},
-  {404, "Not Found"}
+  {404, "Not Found"},
+  {500, "Internal Server Error"},
 });
 
 struct ContentInformation {
@@ -45,7 +45,7 @@ void InitContentMapping() {
   content_map.insert({"/favicon.ico", ContentInformation(content_directory + "ow.ico", "image/apng")});
 }
 
-void GetValidResponse(Response &response, const ContentInformation &content_information) {
+void GetValidResponse(ClientInfo &ci, const ContentInformation &content_information) {
   std::string data;
 
   data.append(kHttpVersion);
@@ -64,10 +64,10 @@ void GetValidResponse(Response &response, const ContentInformation &content_info
   data.append("\n");
   data.append(content_information.content);
 
-  response.responses.push_back(data);
+  ci.responses.push_back(data);
 }
 
-void GetErrorResponse(Response &response, const size_t kHttpErrorCode) {
+void GetErrorResponse(ClientInfo &ci, const size_t kHttpErrorCode) {
   std::string data;
 
   data.append(kHttpVersion);
@@ -79,10 +79,10 @@ void GetErrorResponse(Response &response, const size_t kHttpErrorCode) {
   data.append(kServerInformation);
   data.append("\n");
 
-  response.responses.push_back(data);
+  ci.responses.push_back(data);
 }
 
-int GetCgiResponse(const HttpRequest &http_request, Response &response) {
+int GetCgiResponse(const ClientInfo &ci) {
   int write_to_child[2];
   int read_from_child[2];
   if (pipe(write_to_child) < 0) {
@@ -94,7 +94,7 @@ int GetCgiResponse(const HttpRequest &http_request, Response &response) {
     return -1;
   }
 
-  CgiInfo cgi_info(http_request);
+  CgiInfo cgi_info(ci.http_request);
   pid_t p = fork();
   if (p < 0) {
     perror("GetCgiReseponse: fork failed");
@@ -138,41 +138,32 @@ int GetCgiResponse(const HttpRequest &http_request, Response &response) {
     perror("GetCgiResponse: wait failed");
   }
 
-  // Read from child
-  close(read_from_child[1]);
-  char content[kMaxBufSize];
-  int bytes_read = read(read_from_child[0], content, kMaxBufSize);
-  if (bytes_read < 0) {
-    perror("GetCgiResponse: Read from child failed");
-  } else {
-    content[bytes_read] = '\0';
-    response.responses.push_back(std::string(content));
-  }
-  close(read_from_child[0]);
-  return 0;
+  return read_from_child[0];
 }
 
-ResponseStatus GetResponse(const HttpRequest &http_request, Response &response) {
-  if (!http_request.valid) {
-    GetErrorResponse(response, 400);   
-  } else if (http_request.Get("Url").compare(0, 9, "/cgi-bin/") == 0) {
+HandlerResult GetResponse(ClientInfo &ci) {
+  if (!ci.http_request.valid) {
+    GetErrorResponse(ci, 400);   
+  } else if (ci.http_request.Get("Url").compare(0, 9, "/cgi-bin/") == 0) {
     // Any url that starts with /cgi-bin/ should be handled with a cgi response
-    if (GetCgiResponse(http_request, response) < 0) {
-      GetErrorResponse(response, 500);
+    int fd = 0;
+    if ((fd = GetCgiResponse(ci)) < 0) {
+      GetErrorResponse(ci, 500);
     } else {
-      return kWaitForCgi;
+      return std::make_pair(kWaitForCgi, fd);
     }
-  } else if (content_map.find(http_request.Get("Url")) != content_map.end()) {
-    GetValidResponse(response, content_map.at(http_request.Get("Url")));
+  } else if (content_map.find(ci.http_request.Get("Url")) != content_map.end()) {
+    GetValidResponse(ci, content_map.at(ci.http_request.Get("Url")));
   } else {
-    GetErrorResponse(response, 404);
+    GetErrorResponse(ci, 404);
   }
 
-  return kNormalResponseCompleted;
+  // -1 is ignored
+  return std::make_pair(kNormalResponseCompleted, -1);
 }
 
 void SendResponse(int client_fd, const Response &response) {
-  for (const std::string &r: response.responses) {
+  for (const std::string &r: response) {
     Write(client_fd, r.c_str(), r.size());
   }
 }

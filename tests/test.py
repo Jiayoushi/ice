@@ -16,7 +16,7 @@ time.sleep(1)
 # Client
 BASE_HOST = '127.0.0.1'
 PORT = 8080
-NUM_OF_CLIENTS = 1
+NUM_OF_CLIENTS = 2
 
 requests_folder = 'requests/'
 response_postfix = '_response'
@@ -44,6 +44,8 @@ for request in requests:
     # Send and echo
     for client in clients:
         client['socket'].sendall(REQUEST)
+
+    for client in clients:
         data = client['socket'].recv(10240)
         if data != EXPECTED_RESPONSE: 
             print('Test case ' + request[0] + ' failed.')

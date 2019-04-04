@@ -1,10 +1,12 @@
 #include "server.h"
 
 #include <stdio.h>
+#include <unistd.h>
 #include <iostream>
 
 #include "network.h"
 #include "defs.h"
+
 
 namespace ice {
 
@@ -46,15 +48,43 @@ void Server::Loop() {
 
           FD_SET(client_fd, &active_fds);
         } else {
-          ResponseStatus rs = HandleClient(fd);
-          //if (rs == kWaitForCgi) {
-            // Do nothing
-          //} else {
-            // Error or a valid response
+          auto result = client_map_.find(fd);
+          if (result == client_map_.end()) {
+            perror("client_map error: unmatched fd");
+          }
+          std::shared_ptr<ClientInfo> &ci = result->second;
+          if (fd == ci->client_fd) {
+            HandlerResult hr = HandleClient(*ci);
+            if (hr.first == kWaitForCgi) {
+              FD_SET(hr.second, &active_fds);
+              client_map_[hr.second] = ci;
+            } else {
+              // Error or a valid response
+              RemoveClient(fd);
+              Close(fd);
+              FD_CLR(fd, &active_fds);
+            }
+          } else {
+            // Cgi has responded
+            // Read from cgi
+            char response[kMaxBufSize];
+            int bytes_read = read(fd, response, kMaxBufSize);
+            if (bytes_read < 0) {
+              perror("Server select read response from cgi error");
+            } else {
+              response[bytes_read] = '\0';
+            }
+            // Send to client
+            int bytes_sent = write(ci->client_fd, response, bytes_read);
+            if (bytes_sent < 0) {
+              perror("Server select send response from cgi error");
+            }
+ 
+            // Close connection
             RemoveClient(fd);
             Close(fd);
             FD_CLR(fd, &active_fds);
-          //}
+          }
         }
       }
     }
@@ -66,19 +96,18 @@ void Server::Run() {
   Loop();
 }
 
-ResponseStatus Server::HandleClient(int client_fd) {
-  ClientInfo &client_info = client_infos_[client_fd];
+HandlerResult Server::HandleClient(ClientInfo &ci) {
+  // Read from the client
   char message[kMaxMessageLen];
-  int message_len = Read(client_info.client_fd, message, kMaxMessageLen);
+  int message_len = Read(ci.client_fd, message, kMaxMessageLen);
 
-  ParseHttpMessage(message, message_len, client_info.http_request);
+  ParseHttpMessage(message, message_len, ci.http_request);
 
-  Response response;
-  ResponseStatus rs = GetResponse(client_info.http_request, response);
-  if (rs == kNormalResponseCompleted) {
-    SendResponse(client_fd, response);
-  } else if (rs == kWaitForCgi) {
-    SendResponse(client_fd, response);
+  HandlerResult rs = GetResponse(ci);
+  if (rs.first == kNormalResponseCompleted) {
+    SendResponse(ci.client_fd, ci.responses);
+  } else if (rs.first == kWaitForCgi) {
+    // Should do nothing
   } else {
     perror("Server failed to deliver a reponse");
   }
@@ -86,11 +115,11 @@ ResponseStatus Server::HandleClient(int client_fd) {
 }
 
 void Server::AddClient(int client_fd, const sockaddr_in &client_address) {
-  client_infos_[client_fd] = ClientInfo(client_fd, client_address);
+  client_map_[client_fd] = std::make_shared<ClientInfo>(client_fd, client_address);
 }
 
 void Server::RemoveClient(int client_fd) {
-  client_infos_.erase(client_fd);
+  client_map_.erase(client_fd);
 }
 
 }

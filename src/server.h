@@ -12,20 +12,6 @@
 
 namespace ice {
 
-struct ClientInfo {
-  int client_fd;
-  std::string ip_address;
-  HttpRequest http_request;
-
-  ClientInfo() {
-  }
-
-  ClientInfo(int client_fd, const sockaddr_in &client_address):
-    client_fd(client_fd),
-    ip_address(inet_ntoa(client_address.sin_addr)),
-    http_request() {
-  }
-};
 
 class Server {
  public:
@@ -41,13 +27,11 @@ class Server {
   void Loop();
    
   void AddClient(int client_fd, const sockaddr_in &client_address);
-  ResponseStatus HandleClient(int client_fd);
   void RemoveClient(int client_fd);
+  HandlerResult HandleClient(ClientInfo &ci);
 
   int listen_fd_;
-  std::unordered_map<int, ClientInfo> client_infos_;
-
-  
+  ClientMap client_map_;
 };
 
 }
