@@ -23,10 +23,13 @@ class Server {
  private:
   const size_t kMaxMessageLen = 2048;
 
+  fd_set active_fds;
+  fd_set read_fds;
+
   void Connect();
   void Loop();
    
-  int AcceptClient(int listen_fd);
+  void AcceptClient(int listen_fd);
   void RemoveClient(int client_fd);
   HandlerResult HandleClient(ClientInfo &ci);
 
