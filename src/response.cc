@@ -30,26 +30,19 @@ struct ContentInformation {
   std::string content_type;
   std::string content;
 
-  ContentInformation(const std::string &path, const std::string &type, bool cgi):
+  ContentInformation(const std::string &path, const std::string &type):
     content_path(path), content_type(type), content() {
-      if (cgi == false) {
-        std::ifstream ifs(path, std::ifstream::in | std::ifstream::binary);
-        content = std::string((std::istreambuf_iterator<char>(ifs)),
-                              (std::istreambuf_iterator<char>()));
-      }
-  }
-
-  void AddContent(const char *c) {
-    content = std::string(c);
+      std::ifstream ifs(path, std::ifstream::in | std::ifstream::binary);
+      content = std::string((std::istreambuf_iterator<char>(ifs)),
+                            (std::istreambuf_iterator<char>()));
   }
 };
 
 std::unordered_map<std::string, ContentInformation> content_map;
 
 void InitContentMapping() {
-  content_map.insert({"/", ContentInformation(content_directory + "home.html", "text/html", false)});
-  content_map.insert({"/favicon.ico", ContentInformation(content_directory + "ow.ico", "image/apng", false)});
-  content_map.insert({"/cgi-bin/cgi_basic_test", ContentInformation("/cgi-bin/cgi_basic_test", "text/html", true)});
+  content_map.insert({"/", ContentInformation(content_directory + "home.html", "text/html")});
+  content_map.insert({"/favicon.ico", ContentInformation(content_directory + "ow.ico", "image/apng")});
 }
 
 void GetValidResponse(Response &response, const ContentInformation &content_information) {
@@ -153,10 +146,7 @@ int GetCgiResponse(const HttpRequest &http_request, Response &response) {
     perror("GetCgiResponse: Read from child failed");
   } else {
     content[bytes_read] = '\0';
-
-    ContentInformation content_information = content_map.at(http_request.Get("Url"));
-    content_information.AddContent(content);
-    GetValidResponse(response, content_information);
+    response.responses.push_back(std::string(content));
   }
   close(read_from_child[0]);
   return 0;
@@ -165,17 +155,15 @@ int GetCgiResponse(const HttpRequest &http_request, Response &response) {
 void GetResponse(const HttpRequest &http_request, Response &response) {
   if (!http_request.valid) {
     GetErrorResponse(response, 400);   
-  } else if (content_map.find(http_request.Get("Url")) == content_map.end()) {
-    GetErrorResponse(response, 404);
-  } else {
+  } else if (http_request.Get("Url").compare(0, 9, "/cgi-bin/") == 0) {
     // Any url that starts with /cgi-bin/ should be handled with a cgi response
-    if (http_request.Get("Url").compare(0, 9, "/cgi-bin/") == 0) {
-      if (GetCgiResponse(http_request, response) < 0) {
-        GetErrorResponse(response, 500);
-      }
-    } else {
-      GetValidResponse(response, content_map.at(http_request.Get("Url")));
+    if (GetCgiResponse(http_request, response) < 0) {
+      GetErrorResponse(response, 500);
     }
+  } else if (content_map.find(http_request.Get("Url")) != content_map.end()) {
+    GetValidResponse(response, content_map.at(http_request.Get("Url")));
+  } else {
+    GetErrorResponse(response, 404);
   }
 }
 
