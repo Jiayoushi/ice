@@ -5,4 +5,3 @@ Start from the bottom
 3. Test error response 500
 4. Write function needs to be used as a for loop 
 5. response, a better data structure?
-6. Add pipe fds to the select function

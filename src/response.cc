@@ -25,12 +25,12 @@ std::unordered_map<size_t, std::string> http_error_map({
   {500, "Internal Server Error"},
 });
 
-struct ContentInformation {
+struct StaticContent {
   std::string content_path;
   std::string content_type;
   std::string content;
 
-  ContentInformation(const std::string &path, const std::string &type):
+  StaticContent(const std::string &path, const std::string &type):
     content_path(path), content_type(type), content() {
       std::ifstream ifs(path, std::ifstream::in | std::ifstream::binary);
       content = std::string((std::istreambuf_iterator<char>(ifs)),
@@ -38,14 +38,14 @@ struct ContentInformation {
   }
 };
 
-std::unordered_map<std::string, ContentInformation> content_map;
+std::unordered_map<std::string, StaticContent> content_map;
 
 void InitContentMapping() {
-  content_map.insert({"/", ContentInformation(content_directory + "home.html", "text/html")});
-  content_map.insert({"/favicon.ico", ContentInformation(content_directory + "ow.ico", "image/apng")});
+  content_map.insert({"/", StaticContent(content_directory + "home.html", "text/html")});
+  content_map.insert({"/favicon.ico", StaticContent(content_directory + "ow.ico", "image/apng")});
 }
 
-void GetValidResponse(ClientInfo &ci, const ContentInformation &content_information) {
+void GetValidResponse(ClientInfo &ci, const StaticContent &static_content) {
   std::string data;
 
   data.append(kHttpVersion);
@@ -57,12 +57,12 @@ void GetValidResponse(ClientInfo &ci, const ContentInformation &content_informat
   data.append(kServerInformation);
   data.append("\n");
   data.append("Content-Length: " + 
-               std::to_string(content_information.content.size()));
+               std::to_string(static_content.content.size()));
   data.append("\n");
-  data.append("Content-Type: " + content_information.content_type);
+  data.append("Content-Type: " + static_content.content_type);
   data.append("\n");
   data.append("\n");
-  data.append(content_information.content);
+  data.append(static_content.content);
 
   ci.responses.push_back(data);
 }

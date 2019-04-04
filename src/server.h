@@ -26,7 +26,7 @@ class Server {
   void Connect();
   void Loop();
    
-  void AddClient(int client_fd, const sockaddr_in &client_address);
+  int AcceptClient(int listen_fd);
   void RemoveClient(int client_fd);
   HandlerResult HandleClient(ClientInfo &ci);
 

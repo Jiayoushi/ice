@@ -40,12 +40,7 @@ void Server::Loop() {
     for (size_t fd = 0; fd < FD_SETSIZE; ++fd) {
       if (FD_ISSET(fd, &read_fds)) {
         if (fd == listen_fd_) {
-          sockaddr_in client_address;
-          socklen_t address_length = sizeof(client_address);
-          int client_fd = Accept(listen_fd_, (sockaddr *)&client_address, &address_length);
-
-          AddClient(client_fd, client_address);
-
+          int client_fd = AcceptClient(fd);
           FD_SET(client_fd, &active_fds);
         } else {
           auto result = client_map_.find(fd);
@@ -114,8 +109,13 @@ HandlerResult Server::HandleClient(ClientInfo &ci) {
   return rs;
 }
 
-void Server::AddClient(int client_fd, const sockaddr_in &client_address) {
+int Server::AcceptClient(int listen_fd) {
+  sockaddr_in client_address;
+  socklen_t address_length = sizeof(client_address);
+  int client_fd = Accept(listen_fd, (sockaddr *)&client_address, &address_length);
   client_map_[client_fd] = std::make_shared<ClientInfo>(client_fd, client_address);
+
+  return client_fd;
 }
 
 void Server::RemoveClient(int client_fd) {
