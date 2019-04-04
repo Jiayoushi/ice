@@ -58,7 +58,7 @@ void Server::HandleClient(int fd) {
     return;
   }
 
-  ClientInfo &ci = *(result->second);
+  ClientHandler &ci = *(result->second);
   // fd matches client_fd, read from client and prepare response
   if (fd == ci.client_fd) {
     // Read from the client
@@ -109,7 +109,7 @@ void Server::AcceptClient(int listen_fd) {
   socklen_t address_length = sizeof(client_address);
 
   int client_fd = Accept(listen_fd, (sockaddr *)&client_address, &address_length);
-  client_map_[client_fd] = std::make_shared<ClientInfo>(client_fd, client_address);
+  client_map_[client_fd] = std::make_shared<ClientHandler>(client_fd, client_address);
   FD_SET(client_fd, &active_fds);
 }
 

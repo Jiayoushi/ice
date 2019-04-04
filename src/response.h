@@ -13,16 +13,17 @@
 namespace ice {
 
 
-struct ClientInfo {
+class ClientHandler {
+ public:
   int client_fd;
   std::string ip_address;
   HttpRequest http_request;
   std::vector<std::string> responses;
 
-  ClientInfo() {
+  ClientHandler() {
   }
 
-  ClientInfo(int client_fd, const sockaddr_in &client_address):
+  ClientHandler(int client_fd, const sockaddr_in &client_address):
     client_fd(client_fd), 
     ip_address(inet_ntoa(client_address.sin_addr)),
     http_request(),
@@ -31,7 +32,7 @@ struct ClientInfo {
 };
 
 typedef int FileDescriptor;
-typedef std::unordered_map<FileDescriptor, std::shared_ptr<ClientInfo>> ClientMap;
+typedef std::unordered_map<FileDescriptor, std::shared_ptr<ClientHandler>> ClientMap;
 typedef std::vector<std::string> Response;
 
 const size_t kMaxBufSize = 1024;
@@ -43,7 +44,7 @@ enum ResponseStatus {
 typedef std::pair<ResponseStatus, FileDescriptor> HandlerResult;
 
 void InitContentMapping();
-HandlerResult GetResponse(ClientInfo &ci);
+HandlerResult GetResponse(ClientHandler &ci);
 void SendResponse(int client_fd, const Response &r);
 
 

@@ -38,14 +38,14 @@ struct StaticContent {
   }
 };
 
-std::unordered_map<std::string, StaticContent> content_map;
+std::unordered_map<std::string, StaticContent> static_content_map;
 
 void InitContentMapping() {
-  content_map.insert({"/", StaticContent(content_directory + "home.html", "text/html")});
-  content_map.insert({"/favicon.ico", StaticContent(content_directory + "ow.ico", "image/apng")});
+  static_content_map.insert({"/", StaticContent(content_directory + "home.html", "text/html")});
+  static_content_map.insert({"/favicon.ico", StaticContent(content_directory + "ow.ico", "image/apng")});
 }
 
-void GetValidResponse(ClientInfo &ci, const StaticContent &static_content) {
+void GetValidResponse(ClientHandler &ci, const StaticContent &static_content) {
   std::string data;
 
   data.append(kHttpVersion);
@@ -67,7 +67,7 @@ void GetValidResponse(ClientInfo &ci, const StaticContent &static_content) {
   ci.responses.push_back(data);
 }
 
-void GetErrorResponse(ClientInfo &ci, const size_t kHttpErrorCode) {
+void GetErrorResponse(ClientHandler &ci, const size_t kHttpErrorCode) {
   std::string data;
 
   data.append(kHttpVersion);
@@ -82,7 +82,7 @@ void GetErrorResponse(ClientInfo &ci, const size_t kHttpErrorCode) {
   ci.responses.push_back(data);
 }
 
-int GetCgiResponse(const ClientInfo &ci) {
+int GetCgiResponse(const ClientHandler &ci) {
   int write_to_child[2];
   int read_from_child[2];
   if (pipe(write_to_child) < 0) {
@@ -141,7 +141,7 @@ int GetCgiResponse(const ClientInfo &ci) {
   return read_from_child[0];
 }
 
-HandlerResult GetResponse(ClientInfo &ci) {
+HandlerResult GetResponse(ClientHandler &ci) {
   if (!ci.http_request.valid) {
     GetErrorResponse(ci, 400);   
   } else if (ci.http_request.Get("Url").compare(0, 9, "/cgi-bin/") == 0) {
@@ -152,8 +152,8 @@ HandlerResult GetResponse(ClientInfo &ci) {
     } else {
       return std::make_pair(kWaitForCgi, fd);
     }
-  } else if (content_map.find(ci.http_request.Get("Url")) != content_map.end()) {
-    GetValidResponse(ci, content_map.at(ci.http_request.Get("Url")));
+  } else if (static_content_map.find(ci.http_request.Get("Url")) != static_content_map.end()) {
+    GetValidResponse(ci, static_content_map.at(ci.http_request.Get("Url")));
   } else {
     GetErrorResponse(ci, 404);
   }
