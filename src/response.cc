@@ -6,7 +6,6 @@
 #include <cstring>
 #include <unordered_map>
 #include <iostream>
-#include <fstream>
 #include <vector>
 
 #include "network.h"
@@ -18,25 +17,11 @@ extern std::string content_directory;
 const std::string kHttpVersion = "HTTP/1.1";
 const std::string kServerInformation = "Server: ice";
 
-
 std::unordered_map<size_t, std::string> http_error_map({
   {400, "Bad Request"},
   {404, "Not Found"},
   {500, "Internal Server Error"},
 });
-
-struct StaticContent {
-  std::string content_path;
-  std::string content_type;
-  std::string content;
-
-  StaticContent(const std::string &path, const std::string &type):
-    content_path(path), content_type(type), content() {
-      std::ifstream ifs(path, std::ifstream::in | std::ifstream::binary);
-      content = std::string((std::istreambuf_iterator<char>(ifs)),
-                            (std::istreambuf_iterator<char>()));
-  }
-};
 
 std::unordered_map<std::string, StaticContent> static_content_map;
 
@@ -45,7 +30,7 @@ void InitContentMapping() {
   static_content_map.insert({"/favicon.ico", StaticContent(content_directory + "ow.ico", "image/apng")});
 }
 
-void GetValidResponse(ClientHandler &ci, const StaticContent &static_content) {
+void RequestHandler::GetValidResponse(const StaticContent &static_content) {
   std::string data;
 
   data.append(kHttpVersion);
@@ -64,10 +49,10 @@ void GetValidResponse(ClientHandler &ci, const StaticContent &static_content) {
   data.append("\n");
   data.append(static_content.content);
 
-  ci.responses.push_back(data);
+  AppendResponse(std::move(data));
 }
 
-void GetErrorResponse(ClientHandler &ci, const size_t kHttpErrorCode) {
+void RequestHandler::GetErrorResponse(const size_t kHttpErrorCode) {
   std::string data;
 
   data.append(kHttpVersion);
@@ -79,10 +64,10 @@ void GetErrorResponse(ClientHandler &ci, const size_t kHttpErrorCode) {
   data.append(kServerInformation);
   data.append("\n");
 
-  ci.responses.push_back(data);
+  AppendResponse(std::move(data));
 }
 
-int GetCgiResponse(const ClientHandler &ci) {
+int RequestHandler::GetCgiResponse() {
   int write_to_child[2];
   int read_from_child[2];
   if (pipe(write_to_child) < 0) {
@@ -94,7 +79,7 @@ int GetCgiResponse(const ClientHandler &ci) {
     return -1;
   }
 
-  CgiInfo cgi_info(ci.http_request);
+  CgiInfo cgi_info(http_request);
   pid_t p = fork();
   if (p < 0) {
     perror("GetCgiReseponse: fork failed");
@@ -141,34 +126,35 @@ int GetCgiResponse(const ClientHandler &ci) {
   return read_from_child[0];
 }
 
-HandlerResult GetResponse(ClientHandler &ci) {
-  if (!ci.http_request.valid) {
-    GetErrorResponse(ci, 400);   
-  } else if (ci.http_request.Get("Url").compare(0, 9, "/cgi-bin/") == 0) {
+HandlerResult RequestHandler::GetResponse() {
+  if (!http_request.valid) {
+    GetErrorResponse(400);   
+  } else if (http_request.Get("Url").compare(0, 9, "/cgi-bin/") == 0) {
     // Any url that starts with /cgi-bin/ should be handled with a cgi response
     int fd = 0;
-    if ((fd = GetCgiResponse(ci)) < 0) {
-      GetErrorResponse(ci, 500);
+    if ((fd = GetCgiResponse()) < 0) {
+      GetErrorResponse(500);
     } else {
       return std::make_pair(kWaitForCgi, fd);
     }
-  } else if (static_content_map.find(ci.http_request.Get("Url")) != static_content_map.end()) {
-    GetValidResponse(ci, static_content_map.at(ci.http_request.Get("Url")));
+  } else if (static_content_map.find(http_request.Get("Url")) != static_content_map.end()) {
+    GetValidResponse(static_content_map.at(http_request.Get("Url")));
   } else {
-    GetErrorResponse(ci, 404);
+    GetErrorResponse(404);
   }
 
   // -1 is ignored
   return std::make_pair(kNormalResponseCompleted, -1);
 }
 
-void SendResponse(int client_fd, const Response &response) {
-  for (const std::string &r: response) {
+void RequestHandler::SendResponse() {
+  for (const std::string &r: responses) {
     Write(client_fd, r.c_str(), r.size());
   }
 }
 
 
+/* CgiInfo */
 CgiInfo::CgiInfo(const HttpRequest &http_request):
   body_size(0), argc(0), envc(0), body(nullptr) {
 
@@ -231,4 +217,11 @@ std::string CgiInfo::GetScriptNameFromUrl(const std::string &url) {
   }
 }
 
+void RequestHandler::AppendResponse(std::string &&data) {
+  responses.push_back(std::move(data));
 }
+
+
+
+}
+

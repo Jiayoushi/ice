@@ -7,47 +7,67 @@
 #include <utility>
 #include <vector>
 #include <memory>
+#include <fstream>
 
 #include "http.h"
 
 namespace ice {
 
+void InitContentMapping();
 
-class ClientHandler {
- public:
-  int client_fd;
-  std::string ip_address;
-  HttpRequest http_request;
-  std::vector<std::string> responses;
 
-  ClientHandler() {
-  }
-
-  ClientHandler(int client_fd, const sockaddr_in &client_address):
-    client_fd(client_fd), 
-    ip_address(inet_ntoa(client_address.sin_addr)),
-    http_request(),
-    responses() {
-  }
-};
-
-typedef int FileDescriptor;
-typedef std::unordered_map<FileDescriptor, std::shared_ptr<ClientHandler>> ClientMap;
-typedef std::vector<std::string> Response;
-
+/* RequestHandler */
 const size_t kMaxBufSize = 1024;
 enum ResponseStatus {
   kNormalResponseCompleted = 0,  // Either a ok response or a error response
   kWaitForCgi = 1, // Need to wait for cgi signal
   kInternalError = 2,  // Server has internal error
-}; 
+};
+ 
+typedef int FileDescriptor;
 typedef std::pair<ResponseStatus, FileDescriptor> HandlerResult;
 
-void InitContentMapping();
-HandlerResult GetResponse(ClientHandler &ci);
-void SendResponse(int client_fd, const Response &r);
+struct StaticContent {
+  std::string content_path;
+  std::string content_type;
+  std::string content;
+
+  StaticContent(const std::string &path, const std::string &type):
+    content_path(path), content_type(type), content() {
+      std::ifstream ifs(path, std::ifstream::in | std::ifstream::binary);
+      content = std::string((std::istreambuf_iterator<char>(ifs)),
+                            (std::istreambuf_iterator<char>()));
+  }
+};
+
+class RequestHandler {
+ public:
+  typedef std::vector<std::string> Response;
+
+  int client_fd;
+  std::string ip_address;
+  HttpRequest http_request;
+  Response responses;
+
+  RequestHandler() {}
+  RequestHandler(int client_fd, const sockaddr_in &client_address):
+    client_fd(client_fd), 
+    ip_address(inet_ntoa(client_address.sin_addr)),
+    http_request(),
+    responses() {
+  }
+
+  HandlerResult GetResponse();
+  void SendResponse();
+ private:
+  void AppendResponse(std::string &&data);
+  void GetValidResponse(const StaticContent &static_content);
+  void GetErrorResponse(const size_t kHttpErrorCode);
+  int GetCgiResponse();
+};
 
 
+/* CgiInfo */
 class CgiInfo {
  static const size_t kMaxCgiArgumentsNum = 128;
  public:

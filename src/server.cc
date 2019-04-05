@@ -58,7 +58,7 @@ void Server::HandleClient(int fd) {
     return;
   }
 
-  ClientHandler &ci = *(result->second);
+  RequestHandler &ci = *(result->second);
   // fd matches client_fd, read from client and prepare response
   if (fd == ci.client_fd) {
     // Read from the client
@@ -69,10 +69,10 @@ void Server::HandleClient(int fd) {
     ParseHttpMessage(message, message_len, ci.http_request);
 
     // Get response according to parsed request
-    HandlerResult rs = GetResponse(ci);
+    HandlerResult rs = ci.GetResponse();
     // If it's a valid response or an error response
     if (rs.first == kNormalResponseCompleted) {
-      SendResponse(ci.client_fd, ci.responses);
+      ci.SendResponse();
       RemoveClient(fd);
     // If not, let select waits for cgi
     } else if (rs.first == kWaitForCgi) {
@@ -109,7 +109,7 @@ void Server::AcceptClient(int listen_fd) {
   socklen_t address_length = sizeof(client_address);
 
   int client_fd = Accept(listen_fd, (sockaddr *)&client_address, &address_length);
-  client_map_[client_fd] = std::make_shared<ClientHandler>(client_fd, client_address);
+  client_map_[client_fd] = std::make_shared<RequestHandler>(client_fd, client_address);
   FD_SET(client_fd, &active_fds);
 }
 

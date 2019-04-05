@@ -15,6 +15,9 @@ namespace ice {
 
 class Server {
  public:
+  typedef std::unordered_map<FileDescriptor, std::shared_ptr<RequestHandler>>
+          ClientMap;  
+
   Server(const std::string &kBaseDirectory);
   ~Server();
 
