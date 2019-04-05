@@ -1,6 +1,8 @@
 #include "server.h"
 
 #include <stdio.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include <unistd.h>
 #include <iostream>
 
@@ -90,19 +92,22 @@ void Server::HandleRequest(int fd) {
   } else {
     int &child_fd = fd;
     // Wait for this child to finish
-    
-    // Read from cgi
-    char response[kMaxBufSize];
-    int bytes_read = read(child_fd, response, kMaxBufSize);
-    if (bytes_read < 0) {
-      perror("HandleRequest read response from cgi error");
+    if (waitpid(ci.child_pid, NULL, 0) < 0) {
+      perror("Wait for cgi child failed: ");
     } else {
-      response[bytes_read] = '\0';
-    }
-    // Send to client
-    int bytes_sent = write(ci.client_fd, response, bytes_read);
-    if (bytes_sent < 0) {
-      perror("Server select send response from cgi error");
+      // Read from cgi
+     char response[kMaxBufSize];
+      int bytes_read = read(child_fd, response, kMaxBufSize);
+      if (bytes_read < 0) {
+        perror("HandleRequest read response from cgi error");
+      } else {
+        response[bytes_read] = '\0';
+      }
+      // Send to client
+      int bytes_sent = write(ci.client_fd, response, bytes_read);
+      if (bytes_sent < 0) {
+        perror("Server select send response from cgi error");
+      }
     }
  
     RemoveRequest(child_fd);

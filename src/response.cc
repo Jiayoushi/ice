@@ -113,6 +113,7 @@ int RequestHandler::GetCgiResponse() {
 
   CgiInfo cgi_info(http_request);
   pid_t p = fork();
+  child_pid = p;
   if (p < 0) {
     perror("GetCgiReseponse: fork failed");
     return -1;
@@ -150,11 +151,6 @@ int RequestHandler::GetCgiResponse() {
     }
   }
   close(write_to_child[1]);
-
-  if (wait(nullptr) < 0) {
-    perror("GetCgiResponse: wait failed");
-  }
-
   return read_from_child[0];
 }
 

@@ -83,6 +83,7 @@ class RequestHandler {
   typedef std::vector<std::string> Response;
 
   int client_fd;
+  int child_pid;  // Used when handling cgi
   std::string ip_address;
   HttpRequest http_request;
   Response responses;
@@ -90,6 +91,7 @@ class RequestHandler {
   RequestHandler() {}
   RequestHandler(int client_fd, const sockaddr_in &client_address):
     client_fd(client_fd), 
+    child_pid(-1),
     ip_address(inet_ntoa(client_address.sin_addr)),
     http_request(),
     responses() {
