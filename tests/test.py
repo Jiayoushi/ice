@@ -16,7 +16,7 @@ time.sleep(1)
 # Client
 BASE_HOST = '127.0.0.1'
 PORT = 8080
-NUM_OF_CLIENTS = 2
+NUM_OF_CLIENTS = 10
 
 requests_folder = 'requests/'
 response_postfix = '_response'
