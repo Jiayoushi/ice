@@ -1,4 +1,5 @@
 POST
 HEAD
-Test error response 500
 persistent connection
+Log system
+Test error response 500

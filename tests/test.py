@@ -16,11 +16,13 @@ time.sleep(1)
 # Client
 BASE_HOST = '127.0.0.1'
 PORT = 8080
-NUM_OF_CLIENTS = 10
+NUM_OF_CLIENTS = 2
 
 requests_folder = 'requests/'
 response_postfix = '_response'
-requests = [('get_home', 'r'), ('get_ico', 'rb'), ('invalid_get', 'r'), ('unfound_url', 'r'), ('test_basic_cgi', 'r')]
+requests = [('get_home', 'r'), ('get_ico', 'rb'), ('invalid_get', 'r'), ('unfound_url', 'r'), ('test_basic_cgi', 'r'), \
+            ('test_post', 'r')
+           ]
 
 for request in requests:
     with open(requests_folder + request[0], 'r') as f:

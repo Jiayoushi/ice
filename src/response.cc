@@ -23,48 +23,80 @@ std::unordered_map<size_t, std::string> http_error_map({
   {500, "Internal Server Error"},
 });
 
-std::unordered_map<std::string, StaticContent> static_content_map;
+std::unordered_map<std::string, ContentHandler> content_handler_map;
 
 void InitContentMapping() {
-  static_content_map.insert({"/", StaticContent(content_directory + "home.html", "text/html")});
-  static_content_map.insert({"/favicon.ico", StaticContent(content_directory + "ow.ico", "image/apng")});
+  content_handler_map.insert({"/", 
+         ContentHandler(content_directory + "home.html", "text/html")});
+  content_handler_map.insert({"/favicon.ico",
+         ContentHandler(content_directory + "ow.ico", "image/apng")});
 }
 
-void RequestHandler::GetValidResponse(const StaticContent &static_content) {
-  std::string data;
+void RequestHandler::GetValidResponse() {
+  const ContentHandler &content_handler = content_handler_map[http_request.Get("Url")];
+  std::string content = content_handler.GetContent(http_request);
 
-  data.append(kHttpVersion);
-  data.append(" ");
-  data.append(std::to_string(200));
-  data.append(" ");
-  data.append("OK");
-  data.append("\n");
-  data.append(kServerInformation);
-  data.append("\n");
-  data.append("Content-Length: " + 
-               std::to_string(static_content.content.size()));
-  data.append("\n");
-  data.append("Content-Type: " + static_content.content_type);
-  data.append("\n");
-  data.append("\n");
-  data.append(static_content.content);
+  std::string response;
+  response.append(kHttpVersion);
+  response.append(" ");
+  response.append(std::to_string(200));
+  response.append(" ");
+  response.append("OK");
+  response.append("\n");
+  response.append(kServerInformation);
+  response.append("\n");
+  response.append("Content-Length: " + std::to_string(content.size()));
+  response.append("\n");
+  response.append("Content-Type: " + content_handler.GetContentType());
+  response.append("\n");
+  response.append("\n");
+  response.append(content);
 
-  AppendResponse(std::move(data));
+  AppendResponse(std::move(response));
 }
 
 void RequestHandler::GetErrorResponse(const size_t kHttpErrorCode) {
-  std::string data;
+  std::string response;
 
-  data.append(kHttpVersion);
-  data.append(" ");
-  data.append(std::to_string(kHttpErrorCode));
-  data.append(" ");
-  data.append(http_error_map.at(kHttpErrorCode));
-  data.append("\n");
-  data.append(kServerInformation);
-  data.append("\n");
+  response.append(kHttpVersion);
+  response.append(" ");
+  response.append(std::to_string(kHttpErrorCode));
+  response.append(" ");
+  response.append(http_error_map.at(kHttpErrorCode));
+  response.append("\n");
+  response.append(kServerInformation);
+  response.append("\n");
 
-  AppendResponse(std::move(data));
+  AppendResponse(std::move(response));
+}
+
+
+
+HandlerResult RequestHandler::GetResponse() {
+  if (!http_request.valid) {
+    GetErrorResponse(400);   
+  } else if (http_request.Get("Url").compare(0, 9, "/cgi-bin/") == 0) {
+    // Any url that starts with /cgi-bin/ should be handled with a cgi response
+    int fd = 0;
+    if ((fd = GetCgiResponse()) < 0) {
+      GetErrorResponse(500);
+    } else {
+      return std::make_pair(kWaitForCgi, fd);
+    }
+  } else if (content_handler_map.find(http_request.Get("Url")) != content_handler_map.end()) {
+    GetValidResponse();
+  } else {
+    GetErrorResponse(404);
+  }
+
+  // -1 is ignored
+  return std::make_pair(kNormalResponseCompleted, -1);
+}
+
+void RequestHandler::SendResponse() {
+  for (const std::string &r: responses) {
+    Write(client_fd, r.c_str(), r.size());
+  }
 }
 
 int RequestHandler::GetCgiResponse() {
@@ -124,33 +156,6 @@ int RequestHandler::GetCgiResponse() {
   }
 
   return read_from_child[0];
-}
-
-HandlerResult RequestHandler::GetResponse() {
-  if (!http_request.valid) {
-    GetErrorResponse(400);   
-  } else if (http_request.Get("Url").compare(0, 9, "/cgi-bin/") == 0) {
-    // Any url that starts with /cgi-bin/ should be handled with a cgi response
-    int fd = 0;
-    if ((fd = GetCgiResponse()) < 0) {
-      GetErrorResponse(500);
-    } else {
-      return std::make_pair(kWaitForCgi, fd);
-    }
-  } else if (static_content_map.find(http_request.Get("Url")) != static_content_map.end()) {
-    GetValidResponse(static_content_map.at(http_request.Get("Url")));
-  } else {
-    GetErrorResponse(404);
-  }
-
-  // -1 is ignored
-  return std::make_pair(kNormalResponseCompleted, -1);
-}
-
-void RequestHandler::SendResponse() {
-  for (const std::string &r: responses) {
-    Write(client_fd, r.c_str(), r.size());
-  }
 }
 
 
@@ -217,8 +222,8 @@ std::string CgiInfo::GetScriptNameFromUrl(const std::string &url) {
   }
 }
 
-void RequestHandler::AppendResponse(std::string &&data) {
-  responses.push_back(std::move(data));
+void RequestHandler::AppendResponse(std::string &&response) {
+  responses.push_back(std::move(response));
 }
 
 

@@ -33,13 +33,14 @@ void Server::Loop() {
 
   while (true) {
     read_fds = active_fds;
+
     Select(FD_SETSIZE, &read_fds, NULL, NULL, NULL);
     for (size_t fd = 0; fd < FD_SETSIZE; ++fd) {
       if (FD_ISSET(fd, &read_fds)) {
         if (fd == listen_fd_) {
-          AcceptClient(fd);
+          AcceptConnection(fd);
         } else {
-          HandleClient(fd);
+          HandleRequest(fd);
         }
       }
     }
@@ -51,9 +52,9 @@ void Server::Run() {
   Loop();
 }
 
-void Server::HandleClient(int fd) {
-  auto result = client_map_.find(fd);
-  if (result == client_map_.end()) {
+void Server::HandleRequest(int fd) {
+  auto result = request_handler_map.find(fd);
+  if (result == request_handler_map.end()) {
     perror("client_map error: unmatched fd");
     return;
   }
@@ -61,9 +62,11 @@ void Server::HandleClient(int fd) {
   RequestHandler &ci = *(result->second);
   // fd matches client_fd, read from client and prepare response
   if (fd == ci.client_fd) {
+    int &client_fd = fd;
+
     // Read from the client
     char message[kMaxMessageLen];
-    int message_len = ReadClient(fd, message, kMaxMessageLen);
+    int message_len = ReadRequest(client_fd, message, kMaxMessageLen);
 
     // Parse client's message
     ParseHttpMessage(message, message_len, ci.http_request);
@@ -73,23 +76,26 @@ void Server::HandleClient(int fd) {
     // If it's a valid response or an error response
     if (rs.first == kNormalResponseCompleted) {
       ci.SendResponse();
-      RemoveClient(fd);
+      RemoveRequest(client_fd);
     // If not, let select waits for cgi
     } else if (rs.first == kWaitForCgi) {
       int child_fd = rs.second;
       FD_SET(child_fd, &active_fds);
-      client_map_[child_fd] = result->second;
+      request_handler_map[child_fd] = result->second;
     } else {
-      perror("HandleClient: unmatched HandlerResult");
-      RemoveClient(fd);
+      perror("HandleRequest: unmatched HandlerResult");
+      RemoveRequest(client_fd);
     }
   // Cgi has responded
   } else {
+    int &child_fd = fd;
+    // Wait for this child to finish
+    
     // Read from cgi
     char response[kMaxBufSize];
-    int bytes_read = read(fd, response, kMaxBufSize);
+    int bytes_read = read(child_fd, response, kMaxBufSize);
     if (bytes_read < 0) {
-      perror("HandleClient read response from cgi error");
+      perror("HandleRequest read response from cgi error");
     } else {
       response[bytes_read] = '\0';
     }
@@ -99,27 +105,28 @@ void Server::HandleClient(int fd) {
       perror("Server select send response from cgi error");
     }
  
+    RemoveRequest(child_fd);
     // Close connection
-    RemoveClient(fd);
+    RemoveRequest(ci.client_fd);
   }
 }
 
-void Server::AcceptClient(int listen_fd) {
+void Server::AcceptConnection(int listen_fd) {
   sockaddr_in client_address;
   socklen_t address_length = sizeof(client_address);
 
   int client_fd = Accept(listen_fd, (sockaddr *)&client_address, &address_length);
-  client_map_[client_fd] = std::make_shared<RequestHandler>(client_fd, client_address);
+  request_handler_map[client_fd] = std::make_shared<RequestHandler>(client_fd, client_address);
   FD_SET(client_fd, &active_fds);
 }
 
-void Server::RemoveClient(int client_fd) {
-  client_map_.erase(client_fd);
+void Server::RemoveRequest(int client_fd) {
+  request_handler_map.erase(client_fd);
   Close(client_fd);
   FD_CLR(client_fd, &active_fds);
 }
 
-int Server::ReadClient(int client_fd, char *buf, int buf_size) {
+int Server::ReadRequest(int client_fd, char *buf, int buf_size) {
   int bytes_read = read(client_fd, buf, buf_size);
   if (bytes_read < 0) {
     perror("Error: read");

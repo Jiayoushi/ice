@@ -16,7 +16,7 @@ namespace ice {
 class Server {
  public:
   typedef std::unordered_map<FileDescriptor, std::shared_ptr<RequestHandler>>
-          ClientMap;  
+          RequestHandlerMap;  
 
   Server(const std::string &kBaseDirectory);
   ~Server();
@@ -32,13 +32,13 @@ class Server {
   void Connect();
   void Loop();
    
-  void AcceptClient(int listen_fd);
-  void RemoveClient(int client_fd);
-  void HandleClient(int fd);
-  int ReadClient(int client_fd, char *buf, int buf_size);
+  void AcceptConnection(int listen_fd);
+  void RemoveRequest(int client_fd);
+  void HandleRequest(int fd);
+  int ReadRequest(int client_fd, char *buf, int buf_size);
 
   int listen_fd_;
-  ClientMap client_map_;
+  RequestHandlerMap request_handler_map;
 };
 
 }
