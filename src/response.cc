@@ -121,13 +121,6 @@ int RequestHandler::GetCgiResponse() {
     // Read message body from parent using stdin
     close(write_to_child[1]); 
     dup2(write_to_child[0], STDIN_FILENO);
-    char buf[kMaxBufSize];
-    int bytes_read = read(STDIN_FILENO, buf, kMaxBufSize);
-    if (bytes_read < 0) {
-      perror("GetCgiResponse: child read");
-    } else {
-      buf[bytes_read] = '\0';
-    }
 
     // Send response to parent using stdout
     close(read_from_child[0]);
@@ -168,9 +161,11 @@ CgiInfo::CgiInfo(const HttpRequest &http_request):
   ++envc;
   const std::string &content_length = std::string("CONTENT_LENGTH=") 
                          + http_request.Get("Content-Length");
-  envp[0] = new char[content_length.size() + 1];
+  envp[0] = new char[content_length.size()];
   strcpy(envp[0], content_length.c_str());
   envp[1] = nullptr;
+
+  SetBody(http_request);
 }
 
 CgiInfo::~CgiInfo() {
@@ -181,6 +176,13 @@ CgiInfo::~CgiInfo() {
     delete[] envp[i];
   }
   delete[] body;
+}
+
+void CgiInfo::SetBody(const HttpRequest &http_request) {
+  const std::string &b = http_request.Get("Body");
+  body = new char[b.size()];
+  strcpy(body, b.c_str()); 
+  body_size = b.size();
 }
 
 const char *CgiInfo::GetScriptName() const {

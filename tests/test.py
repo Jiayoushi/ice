@@ -16,7 +16,7 @@ time.sleep(1)
 # Client
 BASE_HOST = '127.0.0.1'
 PORT = 8080
-NUM_OF_CLIENTS = 2
+NUM_OF_CLIENTS = 1
 
 requests_folder = 'requests/'
 response_postfix = '_response'
@@ -53,6 +53,7 @@ for request in requests:
             print('Test case ' + request[0] + ' failed.')
             print('Expect: -------------------')
             print(EXPECTED_RESPONSE)
+            #print(EXPECTED_RESPONSE)
             print('Get: ----------------------')
             print(data)
             sys.exit(1)

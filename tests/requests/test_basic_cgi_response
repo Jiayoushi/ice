@@ -1,8 +1,9 @@
 HTTP/1.1 200 OK
 Server: ice
-Content-Length: 53
+Content-Length: 126
 Content-Type: text/html
 
 ../cgi-bin/cgi_basic_test
-CONTENT_LENGTH=
+CONTENT_LENGTH=70
 Hello CGI!
+Basic CGI POST Test! The server should return this message at the end!

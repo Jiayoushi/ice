@@ -1,16 +1,35 @@
 #include <iostream>
 
 int main(int argc, char *argv[], char *envp[]) {
-  // Print header
-  printf("%s", "HTTP/1.1 200 OK\nServer: ice\nContent-Length: 53\nContent-Type: text/html\n\n");
+  std::string body;
 
-  // Print program
+  // Variables
   for (char **arg = argv; *arg != nullptr; ++arg) {
-    printf("%s\n", *arg);
+    body.append(*arg);
   }
+  body.push_back('\n');
   for (char **env = envp; *env != nullptr; ++env) {
-    printf("%s\n", *env);
+    body.append(*env);
   }
-  printf("Hello CGI!\n");
+  body.push_back('\n');
+  // Customized message
+  body.append("Hello CGI!\n");
+
+  // Read from stdin and print!
+  for (char c; (c = getchar()) != EOF; ) {
+    body.push_back(c);
+  }
+
+  // Header
+  std::string header;
+  header.append("HTTP/1.1 200 OK\n");
+  header.append("Server: ice\n");
+  header.append("Content-Length: " + std::to_string(body.size()) + "\n");
+  header.append("Content-Type: text/html\n");
+  header.append("\n");
+
+  // Print
+  std::cout << header << body;
+
   return 0;
 }

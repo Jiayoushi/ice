@@ -77,7 +77,7 @@ int OnHeaderValue(http_parser *parser, const char *at, size_t len) {
 
 int OnBody(http_parser *parser, const char *at, size_t len) {
   HttpRequest *http_request = (HttpRequest *)parser->data;
-  http_request->data["Body"] = std::string(at, len);
+  http_request->data["Body"] = std::string(at, len) + "\n";
   return 0;
 }
 

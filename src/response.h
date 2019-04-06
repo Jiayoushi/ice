@@ -120,6 +120,7 @@ class CgiInfo {
   const char *GetScriptName() const; 
   const char *GetBody() const;
   const char GetBodySize() const;
+  void SetBody(const HttpRequest &http_request);
   char **GetArgv();
   char **GetEnvp();
   
