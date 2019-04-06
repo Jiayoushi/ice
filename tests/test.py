@@ -21,7 +21,7 @@ NUM_OF_CLIENTS = 1
 requests_folder = 'requests/'
 response_postfix = '_response'
 requests = [('get_home', 'r'), ('get_ico', 'rb'), ('invalid_get', 'r'), ('unfound_url', 'r'), ('test_basic_cgi', 'r'), \
-            ('test_post', 'r')
+            ('test_post', 'r'), ('head_home', 'r')
            ]
 
 for request in requests:
