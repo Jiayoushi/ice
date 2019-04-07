@@ -46,6 +46,8 @@ class ContentHandler {
 
 class RequestHandler {
  public:
+  static const size_t kMaxResponseSize = 8192;
+
   RequestHandler() {}
   RequestHandler(int client_fd, const sockaddr_in &client_address):
     client_fd_(client_fd), 
@@ -53,6 +55,7 @@ class RequestHandler {
     ip_address_(inet_ntoa(client_address.sin_addr)),
     http_request_(),
     response_() {
+    InitializeDefaultResponse();
   }
 
   int GetClientFd() const;
@@ -62,7 +65,9 @@ class RequestHandler {
   HandlerResult GetResponse();
   void SendResponse();
  private:
-  void AppendResponse(std::string &&data);
+  void InitializeDefaultResponse();
+  void AppendResponse(const std::string &s);
+  void AppendResponse(const char *s);
   int GetCgiResponse();
   void GetValidResponse();
   void GetErrorResponse(const size_t kHttpErrorCode);

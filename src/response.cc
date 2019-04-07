@@ -29,47 +29,50 @@ void InitContentMapping() {
          ContentHandler(kContentFolder + "ow.ico", "image/apng")});
 }
 
-void RequestHandler::AppendResponse(std::string &&r) {
-  response_ += r;
+void RequestHandler::InitializeDefaultResponse() {
+  response_.clear();
+  response_.reserve(kMaxResponseSize);
+}
+
+void RequestHandler::AppendResponse(const std::string &s) {
+  response_.append(s);
+}
+
+void RequestHandler::AppendResponse(const char *s) {
+  response_.append(s);
 }
 
 void RequestHandler::GetValidResponse() {
   const ContentHandler &content_handler = content_handler_map[http_request_.Get("Url")];
   std::string content = content_handler.GetContent(http_request_);
 
-  std::string response;
-  response.append(kHttpVersion);
-  response.append(" ");
-  response.append(std::to_string(200));
-  response.append(" ");
-  response.append("OK");
-  response.append("\n");
-  response.append(kServerInformation);
-  response.append("\n");
-  response.append("Content-Length: " + std::to_string(content.size()));
-  response.append("\n");
-  response.append("Content-Type: " + content_handler.GetContentType());
-  response.append("\n");
-  response.append("\n");
+  AppendResponse(kHttpVersion);
+  AppendResponse(" ");
+  AppendResponse(std::to_string(200));
+  AppendResponse(" ");
+  AppendResponse("OK");
+  AppendResponse("\n");
+  AppendResponse(kServerInformation);
+  AppendResponse("\n");
+  AppendResponse("Content-Length: " + std::to_string(content.size()));
+  AppendResponse("\n");
+  AppendResponse("Content-Type: " + content_handler.GetContentType());
+  AppendResponse("\n");
+  AppendResponse("\n");
   if (http_request_.Get("Method") != "HEAD") {
-    response.append(content);
+    AppendResponse(content);
   }
-  AppendResponse(std::move(response));
 }
 
 void RequestHandler::GetErrorResponse(const size_t kHttpErrorCode) {
-  std::string response;
-
-  response.append(kHttpVersion);
-  response.append(" ");
-  response.append(std::to_string(kHttpErrorCode));
-  response.append(" ");
-  response.append(http_error_map.at(kHttpErrorCode));
-  response.append("\n");
-  response.append(kServerInformation);
-  response.append("\n");
-
-  AppendResponse(std::move(response));
+  AppendResponse(kHttpVersion);
+  AppendResponse(" ");
+  AppendResponse(std::to_string(kHttpErrorCode));
+  AppendResponse(" ");
+  AppendResponse(http_error_map.at(kHttpErrorCode));
+  AppendResponse("\n");
+  AppendResponse(kServerInformation);
+  AppendResponse("\n");
 }
 
 int RequestHandler::GetChildPid() const {
@@ -107,7 +110,7 @@ HandlerResult RequestHandler::GetResponse() {
 
 void RequestHandler::SendResponse() {
   Write(client_fd_, response_.c_str(), response_.size());
-  response_.clear();
+  InitializeDefaultResponse();
 }
 
 int RequestHandler::GetCgiResponse() {
