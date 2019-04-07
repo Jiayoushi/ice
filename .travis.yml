@@ -4,4 +4,4 @@ install:
 
 script:
 - cd tests
-- python3 test.py
+- ./run_test
