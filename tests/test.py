@@ -9,7 +9,7 @@ import time
 import os
 
 # Server
-server = subprocess.Popen(['./ice', '8080', './log_file/', './content/', './cgi-bin/'])
+server = subprocess.Popen(['./ice', '8080', './log_file', './content/', './cgi-bin/'])
 atexit.register(server.kill)
 
 time.sleep(1)
@@ -17,7 +17,7 @@ time.sleep(1)
 # Client
 BASE_HOST = '127.0.0.1'
 PORT = 8080
-NUM_OF_CLIENTS = 1
+NUM_OF_CLIENTS = 10
 
 requests_folder = 'tests/requests/'
 response_postfix = '_response'

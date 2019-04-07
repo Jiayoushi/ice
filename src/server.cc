@@ -15,6 +15,7 @@ namespace ice {
 Server::Server() {
   InitHttpParserSettings();
   InitContentMapping();
+  InitLogger(kLogFile);
 }
 
 Server::~Server() {
@@ -52,7 +53,7 @@ void Server::Run() {
 void Server::HandleRequest(int fd) {
   auto result = request_handler_map_.find(fd);
   if (result == request_handler_map_.end()) {
-    perror("client_map error: unmatched fd");
+    Log("client_map error: unmatched fd");
     return;
   }
 
@@ -80,7 +81,7 @@ void Server::HandleRequest(int fd) {
       FD_SET(child_fd, &active_fds_);
       request_handler_map_[child_fd] = result->second;
     } else {
-      perror("HandleRequest: unmatched HandlerResult");
+      Log("HandleRequest: unmatched HandlerResult");
       RemoveRequest(client_fd);
     }
   // Cgi has responded
@@ -88,13 +89,13 @@ void Server::HandleRequest(int fd) {
     int &child_fd = fd;
     // Wait for this child to finish
     if (waitpid(ci.child_pid, NULL, 0) < 0) {
-      perror("Wait for cgi child failed: ");
+      Log("Wait for cgi child failed: ");
     } else {
       // Read from cgi
      char response[kMaxBufSize];
       int bytes_read = read(child_fd, response, kMaxBufSize);
       if (bytes_read < 0) {
-        perror("HandleRequest read response from cgi error");
+        Log("HandleRequest read response from cgi error");
       } else {
         response[bytes_read] = '\0';
       }
@@ -115,18 +116,21 @@ void Server::AcceptConnection(int listen_fd) {
   int client_fd = Accept(listen_fd, (sockaddr *)&client_address, &address_length);
   request_handler_map_[client_fd] = std::make_shared<RequestHandler>(client_fd, client_address);
   FD_SET(client_fd, &active_fds_);
+
+  Log("Accept client, assigned file descriptor: " + std::to_string(client_fd));
 }
 
 void Server::RemoveRequest(int client_fd) {
   request_handler_map_.erase(client_fd);
   Close(client_fd);
   FD_CLR(client_fd, &active_fds_);
+  Log("Remove client, assigned file descriptor: " + std::to_string(client_fd));
 }
 
 int Server::ReadRequest(int client_fd, char *buf, int buf_size) {
   int bytes_read = read(client_fd, buf, buf_size);
   if (bytes_read < 0) {
-    perror("Error: read");
+    Log("Error: read");
     return -1;
   }
 

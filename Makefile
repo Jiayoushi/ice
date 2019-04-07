@@ -177,32 +177,32 @@ src/http.cc.s:
 	$(MAKE) -f CMakeFiles/ice.dir/build.make CMakeFiles/ice.dir/src/http.cc.s
 .PHONY : src/http.cc.s
 
-src/log.o: src/log.cc.o
+src/logger.o: src/logger.cc.o
 
-.PHONY : src/log.o
+.PHONY : src/logger.o
 
 # target to build an object file
-src/log.cc.o:
-	$(MAKE) -f CMakeFiles/ice.dir/build.make CMakeFiles/ice.dir/src/log.cc.o
-.PHONY : src/log.cc.o
+src/logger.cc.o:
+	$(MAKE) -f CMakeFiles/ice.dir/build.make CMakeFiles/ice.dir/src/logger.cc.o
+.PHONY : src/logger.cc.o
 
-src/log.i: src/log.cc.i
+src/logger.i: src/logger.cc.i
 
-.PHONY : src/log.i
+.PHONY : src/logger.i
 
 # target to preprocess a source file
-src/log.cc.i:
-	$(MAKE) -f CMakeFiles/ice.dir/build.make CMakeFiles/ice.dir/src/log.cc.i
-.PHONY : src/log.cc.i
+src/logger.cc.i:
+	$(MAKE) -f CMakeFiles/ice.dir/build.make CMakeFiles/ice.dir/src/logger.cc.i
+.PHONY : src/logger.cc.i
 
-src/log.s: src/log.cc.s
+src/logger.s: src/logger.cc.s
 
-.PHONY : src/log.s
+.PHONY : src/logger.s
 
 # target to generate assembly for a file
-src/log.cc.s:
-	$(MAKE) -f CMakeFiles/ice.dir/build.make CMakeFiles/ice.dir/src/log.cc.s
-.PHONY : src/log.cc.s
+src/logger.cc.s:
+	$(MAKE) -f CMakeFiles/ice.dir/build.make CMakeFiles/ice.dir/src/logger.cc.s
+.PHONY : src/logger.cc.s
 
 src/main.o: src/main.cc.o
 
@@ -354,9 +354,9 @@ help:
 	@echo "... src/http.o"
 	@echo "... src/http.i"
 	@echo "... src/http.s"
-	@echo "... src/log.o"
-	@echo "... src/log.i"
-	@echo "... src/log.s"
+	@echo "... src/logger.o"
+	@echo "... src/logger.i"
+	@echo "... src/logger.s"
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"

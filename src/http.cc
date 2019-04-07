@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <iostream>
 
+#include "logger.h"
+
 namespace ice {
 
 http_parser_settings settings;
@@ -43,7 +45,7 @@ int OnUrlCallback(http_parser *parser, const char *at, size_t len) {
   http_parser_url_init(&url_parser);  
   
   if (http_parser_parse_url(at, len, 0, &url_parser) != 0) {
-    perror("Error: http url parsing");
+    Log("Error: http url parsing");
   }
 
   data["Url-Schema"] = std::string(at + url_parser.field_data[UF_SCHEMA].off,

@@ -10,6 +10,7 @@
 
 #include "network.h"
 #include "settings.h"
+#include "logger.h"
 
 namespace ice {
 
@@ -104,11 +105,11 @@ int RequestHandler::GetCgiResponse() {
   int write_to_child[2];
   int read_from_child[2];
   if (pipe(write_to_child) < 0) {
-    perror("GetCgiResponse: create pipe for write_to_child failed");
+    Log("GetCgiResponse: create pipe for write_to_child failed");
     return -1;  
   }
   if (pipe(read_from_child) < 0) {
-    perror("GetCgiResponse: create pipe for read_from_child failed");
+    Log("GetCgiResponse: create pipe for read_from_child failed");
     return -1;
   }
 
@@ -116,7 +117,7 @@ int RequestHandler::GetCgiResponse() {
   pid_t p = fork();
   child_pid = p;
   if (p < 0) {
-    perror("GetCgiReseponse: fork failed");
+    Log("GetCgiReseponse: fork failed");
     return -1;
   } else if (p == 0) {
     // Read message body from parent using stdin
@@ -130,7 +131,7 @@ int RequestHandler::GetCgiResponse() {
     // Execve
     if (execve(cgi_info.GetScriptName(), 
                cgi_info.GetArgv(), cgi_info.GetEnvp()) < 0) {
-      perror(cgi_info.GetScriptName());
+      Log(cgi_info.GetScriptName());
       exit(EXIT_FAILURE);
     }
   }
@@ -141,7 +142,7 @@ int RequestHandler::GetCgiResponse() {
     int bytes_write = Write(write_to_child[1], 
           cgi_info.GetBody(), cgi_info.GetBodySize());
     if (bytes_write < 0) {
-      perror("GetCgiResponse: write to child");
+      Log("GetCgiResponse: write to child");
     }
   }
   close(write_to_child[1]);

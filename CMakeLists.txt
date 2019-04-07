@@ -6,7 +6,7 @@ add_executable(ice
                src/server.cc 
                src/network.cc 
                src/http.cc
-               src/log.cc
+               src/logger.cc
                src/response.cc 
                src/settings.cc
                libs/http_parser.cc)
