@@ -143,8 +143,8 @@ int RequestHandler::GetCgiResponse() {
   // Pass any message body (especially for POSTs) via stdin to the CGI executable
   close(write_to_child[0]);
   if (cgi_info.GetBody() != nullptr) {
-    int bytes_write = write(write_to_child[1], 
-                        cgi_info.GetBody(), cgi_info.GetBodySize());
+    Write(write_to_child[1], 
+          cgi_info.GetBody(), cgi_info.GetBodySize());
     if (bytes_write < 0) {
       perror("GetCgiResponse: write to child");
     }

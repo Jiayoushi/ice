@@ -86,12 +86,17 @@ int Read(int client_fd, char *buffer, const size_t length) {
 }
 
 int Write(int client_fd, const char *buffer, const size_t length) {
-  int length_write = write(client_fd, buffer, length);
-  if (length_write < 0) {
-    perror("Error: write");
-  }
-
-  return length_write;
+  int total_write = 0;
+  int w = 0;
+  while (total_write != length) {
+    w = write(client_fd, buffer, length - total_write); 
+    if (w < 0) {
+      perror("Write error");
+    }
+    total_write += w;
+  } 
+  
+  return total_write;
 }
 
 void Select(int fd_limit, fd_set *read_fds,

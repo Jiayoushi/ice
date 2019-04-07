@@ -104,10 +104,7 @@ void Server::HandleRequest(int fd) {
         response[bytes_read] = '\0';
       }
       // Send to client
-      int bytes_sent = write(ci.client_fd, response, bytes_read);
-      if (bytes_sent < 0) {
-        perror("Server select send response from cgi error");
-      }
+      Write(ci.client_fd, response, bytes_read);
     }
  
     RemoveRequest(child_fd);
