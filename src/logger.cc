@@ -27,7 +27,7 @@ Logger::Logger(const std::string &log_file):
 
 void Logger::Initialize(const std::string &log_file) {
   log_file_ = log_file;
-  file_stream_ = std::ofstream(log_file_, std::ios::out);
+  file_stream_ = std::move(std::ofstream(log_file_, std::ios::out));
 }
 
 void Logger::Log(const char *s) {
