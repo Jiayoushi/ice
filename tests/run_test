@@ -1,5 +1,5 @@
 cd ..
-make clean
+cmake .
 make
 pwd
 python3 tests/test.py
