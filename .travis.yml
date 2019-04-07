@@ -1,0 +1,7 @@
+os: linux
+
+install:
+
+script:
+- cd tests
+- python3 test.py
