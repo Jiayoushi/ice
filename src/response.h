@@ -30,50 +30,16 @@ typedef std::pair<ResponseStatus, FileDescriptor> HandlerResult;
 
 class ContentHandler {
  public:
-  ContentHandler():
-    filepath_(),
-    content_type_() {
-  }
+  ContentHandler();
+  ContentHandler(const std::string &fp, const std::string &ct);
 
-  ContentHandler(const std::string &fp,
-          const std::string &ct):
-          filepath_(fp),
-          content_type_(ct) {
-  }
-
-  std::string GetContent(const HttpRequest &http_request) const {
-    const std::string &method = http_request.Get("Method");
-    if (method == "GET") {
-      return GetStaticContent();
-    } else if (method == "POST") {
-       const std::string &body = http_request.Get("Body");
-      return GetPostContent(body);
-    } else {
-      return std::string();
-    }
-  }
-
-  std::string GetStaticContent() const {
-    std::ifstream ifs(filepath_, std::ifstream::in | std::ifstream::binary);
-    return std::string((std::istreambuf_iterator<char>(ifs)),
-                       (std::istreambuf_iterator<char>()));
-  }
-
-  std::string GetPostContent(const std::string &body) const {
-    // Just count the words to show the server has successfully responsed
-    std::unordered_set<std::string> s;
-    std::istringstream iss(body);
-    for (std::string word; iss >> word; ) {
-      s.insert(word);
-    }
-    return "Word Count: " + std::to_string(s.size()) + "\n";
-  }
-
-  std::string GetContentType() const {
-    return content_type_;
-  }
+  std::string GetContent(const HttpRequest &http_request) const;
+  std::string GetContentType() const;
 
  private:
+  std::string GetStaticContent() const;
+  std::string GetPostContent(const std::string &body) const;
+
   std::string filepath_;
   std::string content_type_;
 };

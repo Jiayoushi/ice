@@ -32,6 +32,10 @@ void InitContentMapping() {
          ContentHandler(content_directory + "ow.ico", "image/apng")});
 }
 
+void RequestHandler::AppendResponse(std::string &&response) {
+  responses.push_back(std::move(response));
+}
+
 void RequestHandler::GetValidResponse() {
   const ContentHandler &content_handler = content_handler_map[http_request.Get("Url")];
   std::string content = content_handler.GetContent(http_request);
@@ -50,8 +54,9 @@ void RequestHandler::GetValidResponse() {
   response.append("Content-Type: " + content_handler.GetContentType());
   response.append("\n");
   response.append("\n");
-  response.append(content);
-
+  if (http_request.Get("Method") != "HEAD") {
+    response.append(content);
+  }
   AppendResponse(std::move(response));
 }
 
@@ -220,11 +225,53 @@ std::string CgiInfo::GetScriptNameFromUrl(const std::string &url) {
   }
 }
 
-void RequestHandler::AppendResponse(std::string &&response) {
-  responses.push_back(std::move(response));
+
+
+
+/* ContentHandler */
+std::string ContentHandler::GetPostContent(const std::string &body) const {
+  // Just count the words to show the server has successfully responsed
+  std::unordered_set<std::string> s;
+  std::istringstream iss(body);
+  for (std::string word; iss >> word; ) {
+    s.insert(word);
+  }
+  return "Word Count: " + std::to_string(s.size()) + "\n";
+}
+std::string ContentHandler::GetStaticContent() const{
+  std::ifstream ifs(filepath_, std::ifstream::in | std::ifstream::binary);
+  return std::string((std::istreambuf_iterator<char>(ifs)),
+                     (std::istreambuf_iterator<char>()));
 }
 
+std::string ContentHandler::GetContent(const HttpRequest &http_request) const {
+    const std::string &method = http_request.Get("Method");
+    if (method == "GET") {
+      return GetStaticContent();
+    } else if (method == "POST") {
+      const std::string &body = http_request.Get("Body");
+      return GetPostContent(body);
+    } else if (method == "HEAD") {
+      return GetStaticContent();
+    } else {
+      return std::string(method);
+    }
+}
 
+std::string ContentHandler::GetContentType() const {
+  return content_type_;
+}
+
+ContentHandler::ContentHandler():
+  filepath_(),
+  content_type_() {
 
 }
 
+ContentHandler::ContentHandler(const std::string &fp, const std::string &ct):
+  filepath_(fp),
+  content_type_(ct) {
+
+  }
+
+}

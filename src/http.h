@@ -41,6 +41,10 @@ struct HttpRequest {
       return data.at(key);
     }
   }
+
+  const bool Has(const std::string &key) const {
+    return data.find(key) != data.end();
+  }
 };
 
 void InitHttpParserSettings();

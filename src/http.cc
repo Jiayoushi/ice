@@ -47,24 +47,28 @@ int OnUrlCallback(http_parser *parser, const char *at, size_t len) {
     exit(EXIT_FAILURE);
   }
 
-  data["Url-Schema"] = std::string(at + url_parser.field_data[UF_SCHEMA].off, \
+  data["Url-Schema"] = std::string(at + url_parser.field_data[UF_SCHEMA].off,
                                    url_parser.field_data[UF_SCHEMA].len);
-  data["Url-Host"] = std::string(at + url_parser.field_data[UF_HOST].off, \
+  data["Url-Host"] = std::string(at + url_parser.field_data[UF_HOST].off,
                                  url_parser.field_data[UF_HOST].len);
-  data["Url-Port"] = std::string(at + url_parser.field_data[UF_PORT].off, \
+  data["Url-Port"] = std::string(at + url_parser.field_data[UF_PORT].off,
                                  url_parser.field_data[UF_PORT].len);
-  data["Url-Path"] = std::string(at + url_parser.field_data[UF_PATH].off, \
+  data["Url-Path"] = std::string(at + url_parser.field_data[UF_PATH].off,
                                  url_parser.field_data[UF_PATH].len); 
-  data["Url-Query"] = std::string(at + url_parser.field_data[UF_QUERY].off, \
+  data["Url-Query"] = std::string(at + url_parser.field_data[UF_QUERY].off,
                                   url_parser.field_data[UF_QUERY].len); 
-  data["Url-Fragment"] = std::string(at + url_parser.field_data[UF_FRAGMENT].off, \
+  data["Url-Fragment"] = std::string(at + url_parser.field_data[UF_FRAGMENT].off,
                                      url_parser.field_data[UF_FRAGMENT].len);  
-  data["Url-UserInfo"] = std::string(at + url_parser.field_data[UF_USERINFO].off, \
+  data["Url-UserInfo"] = std::string(at + url_parser.field_data[UF_USERINFO].off,
                                      url_parser.field_data[UF_USERINFO].len);  
   return 0;
 }
 
 int OnHeaderField(http_parser *parser, const char *at, size_t len) {
+  HttpRequest *http_request = (HttpRequest *)parser->data;
+  if (!http_request->Has("Method")) {
+    http_request->data["Method"] = std::string(http_method_str(http_method(parser->method)));
+  }
   target_header_field = std::string(at, len);
   return 0;
 }
@@ -86,8 +90,6 @@ int OnMessageComplete(http_parser *parser) {
 }
 
 int OnHeadersComplete(http_parser *parser) {
-  HttpRequest *http_request = (HttpRequest *)parser->data;
-  http_request->data["Method"] = std::string(http_method_str(http_method(parser->method)));
   return 0;
 }
 

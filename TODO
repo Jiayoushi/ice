@@ -1,5 +1,5 @@
-POST
-HEAD
+Complete POST
 persistent connection
 Log system
 Test error response 500
+Configuration Class
