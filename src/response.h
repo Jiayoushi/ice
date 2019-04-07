@@ -46,20 +46,18 @@ class ContentHandler {
 
 class RequestHandler {
  public:
-  int client_fd;
-  int child_pid;  // Used when handling cgi
-  std::string ip_address;
-  HttpRequest http_request;
-  std::string response;
-
   RequestHandler() {}
   RequestHandler(int client_fd, const sockaddr_in &client_address):
-    client_fd(client_fd), 
-    child_pid(-1),
-    ip_address(inet_ntoa(client_address.sin_addr)),
-    http_request(),
-    response() {
+    client_fd_(client_fd), 
+    child_pid_(-1),
+    ip_address_(inet_ntoa(client_address.sin_addr)),
+    http_request_(),
+    response_() {
   }
+
+  int GetClientFd() const;
+  HttpRequest & GetHttpRequest();
+  int GetChildPid() const;
 
   HandlerResult GetResponse();
   void SendResponse();
@@ -68,6 +66,12 @@ class RequestHandler {
   int GetCgiResponse();
   void GetValidResponse();
   void GetErrorResponse(const size_t kHttpErrorCode);
+
+  int client_fd_;
+  int child_pid_;  // Used when handling cgi
+  std::string ip_address_;
+  HttpRequest http_request_;
+  std::string response_;
 };
 
 

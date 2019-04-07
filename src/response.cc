@@ -30,12 +30,12 @@ void InitContentMapping() {
 }
 
 void RequestHandler::AppendResponse(std::string &&r) {
-  response += r;
+  response_ += r;
 }
 
 void RequestHandler::GetValidResponse() {
-  const ContentHandler &content_handler = content_handler_map[http_request.Get("Url")];
-  std::string content = content_handler.GetContent(http_request);
+  const ContentHandler &content_handler = content_handler_map[http_request_.Get("Url")];
+  std::string content = content_handler.GetContent(http_request_);
 
   std::string response;
   response.append(kHttpVersion);
@@ -51,7 +51,7 @@ void RequestHandler::GetValidResponse() {
   response.append("Content-Type: " + content_handler.GetContentType());
   response.append("\n");
   response.append("\n");
-  if (http_request.Get("Method") != "HEAD") {
+  if (http_request_.Get("Method") != "HEAD") {
     response.append(content);
   }
   AppendResponse(std::move(response));
@@ -72,12 +72,22 @@ void RequestHandler::GetErrorResponse(const size_t kHttpErrorCode) {
   AppendResponse(std::move(response));
 }
 
+int RequestHandler::GetChildPid() const {
+  return child_pid_;
+}
 
+int RequestHandler::GetClientFd() const {
+  return client_fd_;
+}
+
+HttpRequest &RequestHandler::GetHttpRequest() {
+  return http_request_;
+}
 
 HandlerResult RequestHandler::GetResponse() {
-  if (!http_request.valid) {
+  if (!http_request_.valid) {
     GetErrorResponse(400);   
-  } else if (http_request.Get("Url").compare(0, 9, "/cgi-bin/") == 0) {
+  } else if (http_request_.Get("Url").compare(0, 9, "/cgi-bin/") == 0) {
     // Any url that starts with /cgi-bin/ should be handled with a cgi response
     int fd = 0;
     if ((fd = GetCgiResponse()) < 0) {
@@ -85,7 +95,7 @@ HandlerResult RequestHandler::GetResponse() {
     } else {
       return std::make_pair(kWaitForCgi, fd);
     }
-  } else if (content_handler_map.find(http_request.Get("Url")) != content_handler_map.end()) {
+  } else if (content_handler_map.find(http_request_.Get("Url")) != content_handler_map.end()) {
     GetValidResponse();
   } else {
     GetErrorResponse(404);
@@ -96,8 +106,8 @@ HandlerResult RequestHandler::GetResponse() {
 }
 
 void RequestHandler::SendResponse() {
-  Write(client_fd, response.c_str(), response.size());
-  response.clear();
+  Write(client_fd_, response_.c_str(), response_.size());
+  response_.clear();
 }
 
 int RequestHandler::GetCgiResponse() {
@@ -112,9 +122,9 @@ int RequestHandler::GetCgiResponse() {
     return -1;
   }
 
-  CgiInfo cgi_info(http_request);
+  CgiInfo cgi_info(http_request_);
   pid_t p = fork();
-  child_pid = p;
+  child_pid_ = p;
   if (p < 0) {
     Log("GetCgiReseponse: fork failed");
     return -1;

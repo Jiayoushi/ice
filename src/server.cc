@@ -32,7 +32,7 @@ void Server::Loop() {
   while (true) {
     read_fds_ = active_fds_;
 
-    Select(FD_SETSIZE, &read_fds_, NULL, NULL, NULL);
+    Select(FD_SETSIZE, &read_fds_, nullptr, nullptr, nullptr);
     for (size_t fd = 0; fd < FD_SETSIZE; ++fd) {
       if (FD_ISSET(fd, &read_fds_)) {
         if (fd == listen_fd_) {
@@ -59,7 +59,7 @@ void Server::HandleRequest(int fd) {
 
   RequestHandler &ci = *(result->second);
   // fd matches client_fd, read from client and prepare response
-  if (fd == ci.client_fd) {
+  if (fd == ci.GetClientFd()) {
     int &client_fd = fd;
 
     // Read from the client
@@ -71,14 +71,13 @@ void Server::HandleRequest(int fd) {
     }
     
     // Parse client's message
-    ParseHttpMessage(message, message_len, ci.http_request);
+    ParseHttpMessage(message, message_len, ci.GetHttpRequest());
 
     // Get response according to parsed request
     HandlerResult rs = ci.GetResponse();
     // If it's a valid response or an error response
     if (rs.first == kNormalResponseCompleted) {
       ci.SendResponse();
-      //RemoveMapping(client_fd);
     // If not, let select waits for cgi
     } else if (rs.first == kWaitForCgi) {
       int child_fd = rs.second;
@@ -92,7 +91,7 @@ void Server::HandleRequest(int fd) {
   } else {
     int &child_fd = fd;
     // Wait for this child to finish
-    if (waitpid(ci.child_pid, NULL, 0) < 0) {
+    if (waitpid(ci.GetChildPid(), NULL, 0) < 0) {
       Log("Wait for cgi child failed: ");
     } else {
       // Read from cgi
@@ -104,12 +103,10 @@ void Server::HandleRequest(int fd) {
         response[bytes_read] = '\0';
       }
       // Send to client
-      Write(ci.client_fd, response, bytes_read);
+      Write(ci.GetClientFd(), response, bytes_read);
     }
  
     RemoveMapping(child_fd);
-    // Close connection
-    //RemoveMapping(ci.client_fd);
   }
 }
 
