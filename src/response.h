@@ -76,22 +76,36 @@ class RequestHandler {
 };
 
 
+
+
 /* CgiInfo */
 class CgiInfo {
- static const size_t kMaxCgiArgumentsNum = 128;
  public:
+  static const size_t kMaxCgiArgumentsNum = 128;
+
   CgiInfo(const HttpRequest &http_request);
   ~CgiInfo();
 
   const char *GetScriptName() const; 
   const char *GetBody() const;
   const char GetBodySize() const;
+  void AddArgument(const std::string &s);
+  void AddEnvironmentVariable(const std::string &s);
+  void SetArguments(const HttpRequest &http_request);
+  void SetEnvironmentVariables(const HttpRequest &http_request);
   void SetBody(const HttpRequest &http_request);
   char **GetArgv();
   char **GetEnvp();
   
  private:
-  std::string GetScriptNameFromUrl(const std::string &url);
+  std::vector<std::string> arguments;
+  std::string script_name;
+  std::string query_string;
+  std::string request_url;
+  // Ignore 0 means return the first occurence
+  // Ignore 1 means ignore the first occurence
+  int Find(const std::string &s, int character, int ignore);
+  void ParseUrl(const HttpRequest &http_request);
 
   size_t body_size;
   size_t argc;

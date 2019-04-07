@@ -44,7 +44,6 @@ int OnUrlCallback(http_parser *parser, const char *at, size_t len) {
   
   if (http_parser_parse_url(at, len, 0, &url_parser) != 0) {
     perror("Error: http url parsing");
-    exit(EXIT_FAILURE);
   }
 
   data["Url-Schema"] = std::string(at + url_parser.field_data[UF_SCHEMA].off,

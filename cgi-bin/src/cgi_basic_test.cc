@@ -6,12 +6,12 @@ int main(int argc, char *argv[], char *envp[]) {
   // Variables
   for (char **arg = argv; *arg != nullptr; ++arg) {
     body.append(*arg);
+    body.push_back('\n');
   }
-  body.push_back('\n');
   for (char **env = envp; *env != nullptr; ++env) {
     body.append(*env);
+    body.push_back('\n');
   }
-  body.push_back('\n');
   // Customized message
   body.append("Hello CGI!\n");
 

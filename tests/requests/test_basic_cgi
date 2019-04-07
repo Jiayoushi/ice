@@ -1,4 +1,4 @@
-POST /cgi-bin/cgi_basic_test HTTP/1.1
+POST /cgi-bin/cgi_basic_test/arg1/arg2/arg3?action=opensearch&search=HT&namespace=0&suggest= HTTP/1.1
 Host: 127.0.0.1
 User-Agent: Mozilla/5.0 (X11; Linux i686) AppleWebKit/535.1 (KHTML, like Gecko) Chrome/14.0.835.186 Safari/535.1
 Accept: application/json, text/javascript, */*; q=0.01

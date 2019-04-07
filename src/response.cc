@@ -16,6 +16,7 @@ namespace ice {
 extern std::string content_directory;
 const std::string kHttpVersion = "HTTP/1.1";
 const std::string kServerInformation = "Server: ice";
+const std::string kGatewayInterface = "CGI/1.1";
 
 std::unordered_map<size_t, std::string> http_error_map({
   {400, "Bad Request"},
@@ -153,23 +154,16 @@ int RequestHandler::GetCgiResponse() {
 }
 
 
+
+
+
 /* CgiInfo */
 CgiInfo::CgiInfo(const HttpRequest &http_request):
-  body_size(0), argc(0), envc(0), body(nullptr) {
-
-  ++argc;
-  const std::string &script_name = GetScriptNameFromUrl(http_request.Get("Url"));
-  argv[0] = new char[script_name.size() * sizeof(char)];
-  strcpy(argv[0], script_name.c_str());
-  argv[1] = nullptr; 
-
-  ++envc;
-  const std::string &content_length = std::string("CONTENT_LENGTH=") 
-                         + http_request.Get("Content-Length");
-  envp[0] = new char[content_length.size()];
-  strcpy(envp[0], content_length.c_str());
-  envp[1] = nullptr;
-
+  body_size(0), argc(0), envc(0), 
+  body(nullptr) {
+  ParseUrl(http_request);
+  SetArguments(http_request);
+  SetEnvironmentVariables(http_request);
   SetBody(http_request);
 }
 
@@ -183,6 +177,35 @@ CgiInfo::~CgiInfo() {
   delete[] body;
 }
 
+void CgiInfo::AddArgument(const std::string &s) {
+  argv[argc] = new char[s.size()];
+  strcpy(argv[argc], s.c_str());
+  ++argc;
+  argv[argc] = nullptr;
+}
+
+void CgiInfo::SetArguments(const HttpRequest &http_request) {
+  AddArgument(script_name);
+  for (const std::string &argument: arguments) {
+    AddArgument(argument);
+  }
+}
+
+void CgiInfo::AddEnvironmentVariable(const std::string &s) {
+  envp[envc] = new char[s.size()];
+  strcpy(envp[envc], s.c_str());
+  ++envc;
+  envp[envc] = nullptr;
+}
+
+void CgiInfo::SetEnvironmentVariables(const HttpRequest &http_request) {
+  AddEnvironmentVariable("CONTENT_LENGTH=" + http_request.Get("Content-Length"));
+  AddEnvironmentVariable("CONTENT_TYPE=" + http_request.Get("Content-Type"));
+  AddEnvironmentVariable("GATEWAY_INTERFACE=" + kGatewayInterface);
+  AddEnvironmentVariable("REQUEST_URL=" + request_url);
+  AddEnvironmentVariable("SCRIPT_NAME=" + script_name);
+}
+
 void CgiInfo::SetBody(const HttpRequest &http_request) {
   const std::string &b = http_request.Get("Body");
   body = new char[b.size()];
@@ -191,7 +214,7 @@ void CgiInfo::SetBody(const HttpRequest &http_request) {
 }
 
 const char *CgiInfo::GetScriptName() const {
-  return argv[0];
+  return script_name.c_str();
 }
 
 const char *CgiInfo::GetBody() const {
@@ -210,19 +233,49 @@ char **CgiInfo::GetEnvp() {
   return envp;
 }
 
-std::string CgiInfo::GetScriptNameFromUrl(const std::string &url) {
-  // The scriptname is the path to the cgi script.
-  // /cgi-bin/ should be project home directory + cgi-bin directory
-  // Then append the scriptname, with ? at the end.
-
-  // n is the position one character before ?
-  std::string::size_type n = url.find('?');
-  if (n == std::string::npos) {
-    return base_directory + url;
-  } else {
-    // url.substr(n) gets rid of the y part of x?y
-    return base_directory + url.substr(0, n);
+int CgiInfo::Find(const std::string &s, int target, int ignore) {
+  for (int i = 0; i < s.size(); ++i) {
+    if (s[i] == target) {
+      if (ignore == 0) {
+        return i;
+      } else  {
+        --ignore;
+      }
+    }
   }
+
+  return -1;
+}
+
+void CgiInfo::ParseUrl(const HttpRequest &http_request) {
+  // /cgi-bin/script_name/arg1/arg2/?query
+  const std::string &url = http_request.Get("Url");
+
+  int script_name_end = Find(url, '/', 2);
+  if (script_name_end == -1) {
+    script_name_end = url.size();
+  }
+  script_name = base_directory + url.substr(0, script_name_end);
+
+  int query_string_start = Find(url, '?', 0) + 1;
+  if (query_string_start != -1) {
+    query_string = url.substr(query_string_start);
+  }
+
+  request_url = url.substr(0, query_string_start - 1);
+
+
+  char u[1024];
+  strcpy(u, http_request.Get("Url").c_str());
+  char *token = std::strtok(u, "/?");
+  int i = 0;
+  while (token != nullptr) {
+    if (i++ >= 2) {
+      arguments.push_back(std::string(token));
+    }
+    token = std::strtok(nullptr, "/?");
+  }
+  arguments.pop_back();
 }
 
 

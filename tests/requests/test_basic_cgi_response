@@ -1,9 +1,16 @@
 HTTP/1.1 200 OK
 Server: ice
-Content-Length: 126
+Content-Length: 270
 Content-Type: text/html
 
 ../cgi-bin/cgi_basic_test
+arg1
+arg2
+arg3
 CONTENT_LENGTH=70
+CONTENT_TYPE=
+GATEWAY_INTERFACE=CGI/1.1
+REQUEST_URL=/cgi-bin/cgi_basic_test/arg1/arg2/arg3
+SCRIPT_NAME=../cgi-bin/cgi_basic_test
 Hello CGI!
 Basic CGI POST Test! The server should return this message at the end!
