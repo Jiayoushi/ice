@@ -40,3 +40,6 @@ ice
 
 # Temporary vim swap files
 *.swp
+
+# Any log files
+*log*
