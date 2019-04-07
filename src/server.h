@@ -26,8 +26,8 @@ class Server {
  private:
   const size_t kMaxMessageLen = 2048;
 
-  fd_set active_fds;
-  fd_set read_fds;
+  fd_set active_fds_;
+  fd_set read_fds_;
 
   void Connect();
   void Loop();
@@ -38,7 +38,7 @@ class Server {
   int ReadRequest(int client_fd, char *buf, int buf_size);
 
   int listen_fd_;
-  RequestHandlerMap request_handler_map;
+  RequestHandlerMap request_handler_map_;
 };
 
 }

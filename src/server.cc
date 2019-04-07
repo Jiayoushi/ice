@@ -25,15 +25,15 @@ void Server::Connect() {
 }
 
 void Server::Loop() {
-  FD_ZERO(&active_fds);
-  FD_SET(listen_fd_, &active_fds);
+  FD_ZERO(&active_fds_);
+  FD_SET(listen_fd_, &active_fds_);
 
   while (true) {
-    read_fds = active_fds;
+    read_fds_ = active_fds_;
 
-    Select(FD_SETSIZE, &read_fds, NULL, NULL, NULL);
+    Select(FD_SETSIZE, &read_fds_, NULL, NULL, NULL);
     for (size_t fd = 0; fd < FD_SETSIZE; ++fd) {
-      if (FD_ISSET(fd, &read_fds)) {
+      if (FD_ISSET(fd, &read_fds_)) {
         if (fd == listen_fd_) {
           AcceptConnection(fd);
         } else {
@@ -50,8 +50,8 @@ void Server::Run() {
 }
 
 void Server::HandleRequest(int fd) {
-  auto result = request_handler_map.find(fd);
-  if (result == request_handler_map.end()) {
+  auto result = request_handler_map_.find(fd);
+  if (result == request_handler_map_.end()) {
     perror("client_map error: unmatched fd");
     return;
   }
@@ -77,8 +77,8 @@ void Server::HandleRequest(int fd) {
     // If not, let select waits for cgi
     } else if (rs.first == kWaitForCgi) {
       int child_fd = rs.second;
-      FD_SET(child_fd, &active_fds);
-      request_handler_map[child_fd] = result->second;
+      FD_SET(child_fd, &active_fds_);
+      request_handler_map_[child_fd] = result->second;
     } else {
       perror("HandleRequest: unmatched HandlerResult");
       RemoveRequest(client_fd);
@@ -113,14 +113,14 @@ void Server::AcceptConnection(int listen_fd) {
   socklen_t address_length = sizeof(client_address);
 
   int client_fd = Accept(listen_fd, (sockaddr *)&client_address, &address_length);
-  request_handler_map[client_fd] = std::make_shared<RequestHandler>(client_fd, client_address);
-  FD_SET(client_fd, &active_fds);
+  request_handler_map_[client_fd] = std::make_shared<RequestHandler>(client_fd, client_address);
+  FD_SET(client_fd, &active_fds_);
 }
 
 void Server::RemoveRequest(int client_fd) {
-  request_handler_map.erase(client_fd);
+  request_handler_map_.erase(client_fd);
   Close(client_fd);
-  FD_CLR(client_fd, &active_fds);
+  FD_CLR(client_fd, &active_fds_);
 }
 
 int Server::ReadRequest(int client_fd, char *buf, int buf_size) {

@@ -95,21 +95,21 @@ class CgiInfo {
   char **GetEnvp();
   
  private:
-  std::vector<std::string> arguments;
-  std::string script_name;
-  std::string query_string;
-  std::string request_url;
+  std::vector<std::string> arguments_;
+  std::string script_name_;
+  std::string query_string_;
+  std::string request_url_;
   // Ignore 0 means return the first occurence
   // Ignore 1 means ignore the first occurence
   int Find(const std::string &s, int character, int ignore);
   void ParseUrl(const HttpRequest &http_request);
 
-  size_t body_size;
-  size_t argc;
-  size_t envc;
-  char *argv[kMaxCgiArgumentsNum];
-  char *envp[kMaxCgiArgumentsNum];
-  char *body;
+  size_t body_size_;
+  size_t argc_;
+  size_t envc_;
+  char *argv_[kMaxCgiArgumentsNum];
+  char *envp_[kMaxCgiArgumentsNum];
+  char *body_;
 };
 
 }

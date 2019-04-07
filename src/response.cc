@@ -154,8 +154,8 @@ int RequestHandler::GetCgiResponse() {
 
 /* CgiInfo */
 CgiInfo::CgiInfo(const HttpRequest &http_request):
-  body_size(0), argc(0), envc(0), 
-  body(nullptr) {
+  body_size_(0), argc_(0), envc_(0), 
+  body_(nullptr) {
   ParseUrl(http_request);
   SetArguments(http_request);
   SetEnvironmentVariables(http_request);
@@ -163,69 +163,69 @@ CgiInfo::CgiInfo(const HttpRequest &http_request):
 }
 
 CgiInfo::~CgiInfo() {
-  for (size_t i = 0; i < argc; ++i) {
-    delete[] argv[i];
+  for (size_t i = 0; i < argc_; ++i) {
+    delete[] argv_[i];
   }
-  for (size_t i = 0; i < envc; ++i) {
-    delete[] envp[i];
+  for (size_t i = 0; i < envc_; ++i) {
+    delete[] envp_[i];
   }
-  delete[] body;
+  delete[] body_;
 }
 
 void CgiInfo::AddArgument(const std::string &s) {
-  argv[argc] = new char[s.size() + 1];
-  strcpy(argv[argc], s.c_str());
-  ++argc;
-  argv[argc] = nullptr;
+  argv_[argc_] = new char[s.size() + 1];
+  strcpy(argv_[argc_], s.c_str());
+  ++argc_;
+  argv_[argc_] = nullptr;
 }
 
 void CgiInfo::SetArguments(const HttpRequest &http_request) {
-  AddArgument(script_name);
-  for (const std::string &argument: arguments) {
+  AddArgument(script_name_);
+  for (const std::string &argument: arguments_) {
     AddArgument(argument);
   }
 }
 
 void CgiInfo::AddEnvironmentVariable(const std::string &s) {
-  envp[envc] = new char[s.size() + 1];
-  strcpy(envp[envc], s.c_str());
-  ++envc;
-  envp[envc] = nullptr;
+  envp_[envc_] = new char[s.size() + 1];
+  strcpy(envp_[envc_], s.c_str());
+  ++envc_;
+  envp_[envc_] = nullptr;
 }
 
 void CgiInfo::SetEnvironmentVariables(const HttpRequest &http_request) {
   AddEnvironmentVariable("CONTENT_LENGTH=" + http_request.Get("Content-Length"));
   AddEnvironmentVariable("CONTENT_TYPE=" + http_request.Get("Content-Type"));
   AddEnvironmentVariable("GATEWAY_INTERFACE=" + kGatewayInterface);
-  AddEnvironmentVariable("REQUEST_URL=" + request_url);
-  AddEnvironmentVariable("SCRIPT_NAME=" + script_name);
+  AddEnvironmentVariable("REQUEST_URL=" + request_url_);
+  AddEnvironmentVariable("SCRIPT_NAME=" + script_name_);
 }
 
 void CgiInfo::SetBody(const HttpRequest &http_request) {
   const std::string &b = http_request.Get("Body");
-  body = new char[b.size()];
-  strcpy(body, b.c_str()); 
-  body_size = b.size();
+  body_ = new char[b.size()];
+  strcpy(body_, b.c_str()); 
+  body_size_ = b.size();
 }
 
 const char *CgiInfo::GetScriptName() const {
-  return script_name.c_str();
+  return script_name_.c_str();
 }
 
 const char *CgiInfo::GetBody() const {
-  return body;
+  return body_;
 }
 
 const char CgiInfo::GetBodySize() const {
-  return body_size;
+  return body_size_;
 }
 
 char **CgiInfo::GetArgv() {
-  return argv;
+  return argv_;
 }
 
 char **CgiInfo::GetEnvp() {
-  return envp;
+  return envp_;
 }
 
 int CgiInfo::Find(const std::string &s, int target, int ignore) {
@@ -252,17 +252,17 @@ void CgiInfo::ParseUrl(const HttpRequest &http_request) {
   if (script_name_end == -1) {
     script_name_end = url.size();
   }
-  script_name = kCgiFolder + 
+  script_name_ = kCgiFolder + 
                 url.substr(script_name_start, script_name_end - script_name_start);
 
   // Query string
   int query_string_start = Find(url, '?', 0) + 1;
   if (query_string_start != -1) {
-    query_string = url.substr(query_string_start);
+    query_string_ = url.substr(query_string_start);
   }
 
   // Request
-  request_url = url.substr(0, query_string_start - 1);
+  request_url_ = url.substr(0, query_string_start - 1);
  
   // Arguments
   char u[1024];
@@ -271,11 +271,11 @@ void CgiInfo::ParseUrl(const HttpRequest &http_request) {
   int i = 0;
   while (token != nullptr) {
     if (i++ >= 2) {
-      arguments.push_back(std::string(token));
+      arguments_.push_back(std::string(token));
     }
     token = std::strtok(nullptr, "/?");
   }
-  arguments.pop_back();
+  arguments_.pop_back();
 }
 
 
