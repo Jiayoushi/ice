@@ -8,6 +8,9 @@
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string>
+
+#include "settings.h"
 
 namespace ice {
 
@@ -38,7 +41,7 @@ void SetServerAddress(sockaddr_in &server_address) {
   memset(&server_address, 0, sizeof(sockaddr_in));  
   server_address.sin_family = AF_INET;
   server_address.sin_addr.s_addr = INADDR_ANY;
-  server_address.sin_port = htons(8080);
+  server_address.sin_port = htons(stoi(kHttpPort));
 }
 
 void SetSocketOptions(int listen_fd) {

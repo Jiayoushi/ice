@@ -1,5 +1,6 @@
 cd ..
 make clean
 make
+pwd
 python3 tests/test.py
 ps

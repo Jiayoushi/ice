@@ -9,14 +9,9 @@
 #include <vector>
 
 #include "network.h"
-#include "defs.h"
+#include "settings.h"
 
 namespace ice {
-
-extern std::string content_directory;
-const std::string kHttpVersion = "HTTP/1.1";
-const std::string kServerInformation = "Server: ice";
-const std::string kGatewayInterface = "CGI/1.1";
 
 std::unordered_map<size_t, std::string> http_error_map({
   {400, "Bad Request"},
@@ -28,9 +23,9 @@ std::unordered_map<std::string, ContentHandler> content_handler_map;
 
 void InitContentMapping() {
   content_handler_map.insert({"/", 
-         ContentHandler(content_directory + "home.html", "text/html")});
+         ContentHandler(kContentFolder+ "home.html", "text/html")});
   content_handler_map.insert({"/favicon.ico",
-         ContentHandler(content_directory + "ow.ico", "image/apng")});
+         ContentHandler(kContentFolder + "ow.ico", "image/apng")});
 }
 
 void RequestHandler::AppendResponse(std::string &&response) {
@@ -251,20 +246,25 @@ void CgiInfo::ParseUrl(const HttpRequest &http_request) {
   // /cgi-bin/script_name/arg1/arg2/?query
   const std::string &url = http_request.Get("Url");
 
+  // Script name
+  int script_name_start = Find(url, '/', 1) + 1;
   int script_name_end = Find(url, '/', 2);
   if (script_name_end == -1) {
     script_name_end = url.size();
   }
-  script_name = base_directory + url.substr(0, script_name_end);
+  script_name = kCgiFolder + 
+                url.substr(script_name_start, script_name_end - script_name_start);
 
+  // Query string
   int query_string_start = Find(url, '?', 0) + 1;
   if (query_string_start != -1) {
     query_string = url.substr(query_string_start);
   }
 
+  // Request
   request_url = url.substr(0, query_string_start - 1);
-
-
+ 
+  // Arguments
   char u[1024];
   strcpy(u, http_request.Get("Url").c_str());
   char *token = std::strtok(u, "/?");
@@ -325,6 +325,6 @@ ContentHandler::ContentHandler(const std::string &fp, const std::string &ct):
   filepath_(fp),
   content_type_(ct) {
 
-  }
+}
 
 }

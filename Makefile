@@ -285,6 +285,33 @@ src/server.cc.s:
 	$(MAKE) -f CMakeFiles/ice.dir/build.make CMakeFiles/ice.dir/src/server.cc.s
 .PHONY : src/server.cc.s
 
+src/settings.o: src/settings.cc.o
+
+.PHONY : src/settings.o
+
+# target to build an object file
+src/settings.cc.o:
+	$(MAKE) -f CMakeFiles/ice.dir/build.make CMakeFiles/ice.dir/src/settings.cc.o
+.PHONY : src/settings.cc.o
+
+src/settings.i: src/settings.cc.i
+
+.PHONY : src/settings.i
+
+# target to preprocess a source file
+src/settings.cc.i:
+	$(MAKE) -f CMakeFiles/ice.dir/build.make CMakeFiles/ice.dir/src/settings.cc.i
+.PHONY : src/settings.cc.i
+
+src/settings.s: src/settings.cc.s
+
+.PHONY : src/settings.s
+
+# target to generate assembly for a file
+src/settings.cc.s:
+	$(MAKE) -f CMakeFiles/ice.dir/build.make CMakeFiles/ice.dir/src/settings.cc.s
+.PHONY : src/settings.cc.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -312,6 +339,9 @@ help:
 	@echo "... src/server.o"
 	@echo "... src/server.i"
 	@echo "... src/server.s"
+	@echo "... src/settings.o"
+	@echo "... src/settings.i"
+	@echo "... src/settings.s"
 .PHONY : help
 
 

@@ -9,7 +9,7 @@ import time
 import os
 
 # Server
-server = subprocess.Popen(['./ice', '.'])
+server = subprocess.Popen(['./ice', '8080', './log_file/', './content/', './cgi-bin/'])
 atexit.register(server.kill)
 
 time.sleep(1)

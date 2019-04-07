@@ -7,17 +7,12 @@
 #include <iostream>
 
 #include "network.h"
-#include "defs.h"
+#include "settings.h"
 
 
 namespace ice {
 
-std::string base_directory;
-std::string content_directory;
-
-Server::Server(const std::string &kBaseDirectory) {
-  base_directory = kBaseDirectory;
-  content_directory = kBaseDirectory + "/content/";
+Server::Server() {
   InitHttpParserSettings();
   InitContentMapping();
 }

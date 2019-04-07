@@ -67,11 +67,8 @@ class RequestHandler {
   void SendResponse();
  private:
   void AppendResponse(std::string &&data);
-
   int GetCgiResponse();
-
   void GetValidResponse();
-
   void GetErrorResponse(const size_t kHttpErrorCode);
 };
 

@@ -18,7 +18,7 @@ class Server {
   typedef std::unordered_map<FileDescriptor, std::shared_ptr<RequestHandler>>
           RequestHandlerMap;  
 
-  Server(const std::string &kBaseDirectory);
+  Server();
   ~Server();
 
   void Run();
