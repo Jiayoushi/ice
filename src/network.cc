@@ -19,7 +19,6 @@ int Socket(int domain, int type, int protocol) {
   int listen_fd = socket(domain, type, protocol);
   if (listen_fd < 0) {
     Log("Error: failed to set up socket ");
-    exit(EXIT_FAILURE);
   }
   return listen_fd;
 }
@@ -27,14 +26,12 @@ int Socket(int domain, int type, int protocol) {
 void Bind(int listen_fd, sockaddr_in &server_address) {
   if (bind(listen_fd, (sockaddr *)&server_address, sizeof(server_address)) < 0) {
     Log("bind");
-    exit(EXIT_FAILURE);
   }
 }
 
 void Listen(int listen_fd, int max_pending_connections) {
   if (listen(listen_fd, max_pending_connections) < 0) {
     Log("listen");
-    exit(EXIT_FAILURE);
   }
 }
 
@@ -49,7 +46,6 @@ void SetSocketOptions(int listen_fd) {
   int optval = 1;
   if (setsockopt(listen_fd, SOL_SOCKET, SO_REUSEADDR, (const void *)&optval, sizeof(int)) < 0) {
     Log("Error: setsockopt ");
-    exit(EXIT_FAILURE);
   }
 }
 
@@ -67,7 +63,6 @@ int Accept(int listen_fd, sockaddr *address, socklen_t *address_length) {
   int client_fd = accept(listen_fd, address, address_length);
   if (client_fd < 0) {
     Log("Error: accept");
-    exit(EXIT_FAILURE);
   }
 
   return client_fd;
@@ -76,7 +71,6 @@ int Accept(int listen_fd, sockaddr *address, socklen_t *address_length) {
 void Close(int fd) {
   if (close(fd) < 0) {
     Log("Error: close");
-    exit(EXIT_FAILURE);
   }
 }
 
@@ -90,13 +84,19 @@ int Read(int client_fd, char *buffer, const size_t length) {
 }
 
 int Write(int client_fd, const char *buffer, const size_t length) {
+  if (length == 0) {
+    Log("Write error: attempt to send 0 bytes");
+    return -1;
+  }
+
   int total_write = 0;
   int w = 0;
   while (total_write != length) {
     w = write(client_fd, buffer, length - total_write); 
     if (w < 0) {
       Log("Write error");
-    }
+    } 
+
     total_write += w;
   } 
   
@@ -109,7 +109,6 @@ void Select(int fd_limit, fd_set *read_fds,
   if (select(fd_limit, read_fds,
              write_fds, exceptions, timeout) < 0) {
     Log("Error: select");
-    exit(EXIT_FAILURE);
   }
 }
 

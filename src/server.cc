@@ -65,7 +65,11 @@ void Server::HandleRequest(int fd) {
     // Read from the client
     char message[kMaxMessageLen];
     int message_len = ReadRequest(client_fd, message, kMaxMessageLen);
-
+    if (message_len == 0) {
+      RemoveMapping(client_fd);
+      return;
+    }
+    
     // Parse client's message
     ParseHttpMessage(message, message_len, ci.http_request);
 
@@ -74,7 +78,7 @@ void Server::HandleRequest(int fd) {
     // If it's a valid response or an error response
     if (rs.first == kNormalResponseCompleted) {
       ci.SendResponse();
-      RemoveRequest(client_fd);
+      //RemoveMapping(client_fd);
     // If not, let select waits for cgi
     } else if (rs.first == kWaitForCgi) {
       int child_fd = rs.second;
@@ -82,7 +86,7 @@ void Server::HandleRequest(int fd) {
       request_handler_map_[child_fd] = result->second;
     } else {
       Log("HandleRequest: unmatched HandlerResult");
-      RemoveRequest(client_fd);
+      RemoveMapping(client_fd);
     }
   // Cgi has responded
   } else {
@@ -92,7 +96,7 @@ void Server::HandleRequest(int fd) {
       Log("Wait for cgi child failed: ");
     } else {
       // Read from cgi
-     char response[kMaxBufSize];
+      char response[kMaxBufSize];
       int bytes_read = read(child_fd, response, kMaxBufSize);
       if (bytes_read < 0) {
         Log("HandleRequest read response from cgi error");
@@ -103,9 +107,9 @@ void Server::HandleRequest(int fd) {
       Write(ci.client_fd, response, bytes_read);
     }
  
-    RemoveRequest(child_fd);
+    RemoveMapping(child_fd);
     // Close connection
-    RemoveRequest(ci.client_fd);
+    //RemoveMapping(ci.client_fd);
   }
 }
 
@@ -120,7 +124,7 @@ void Server::AcceptConnection(int listen_fd) {
   Log("Accept client, assigned file descriptor: " + std::to_string(client_fd));
 }
 
-void Server::RemoveRequest(int client_fd) {
+void Server::RemoveMapping(int client_fd) {
   request_handler_map_.erase(client_fd);
   Close(client_fd);
   FD_CLR(client_fd, &active_fds_);
@@ -132,6 +136,8 @@ int Server::ReadRequest(int client_fd, char *buf, int buf_size) {
   if (bytes_read < 0) {
     Log("Error: read");
     return -1;
+  } else if (bytes_read == 0) {
+    Log("Client " + std::to_string(client_fd) + " has closed connection");
   }
 
   return bytes_read;

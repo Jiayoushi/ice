@@ -18,6 +18,7 @@ time.sleep(1)
 BASE_HOST = '127.0.0.1'
 PORT = 8080
 NUM_OF_CLIENTS = 10
+NUM_OF_PERSISTENT_REQUESTS = 3
 
 requests_folder = 'tests/requests/'
 response_postfix = '_response'
@@ -45,22 +46,22 @@ for request in requests:
         client['socket'].connect((host, PORT))
 
     # Send and echo
-    for client in clients:
-        client['socket'].sendall(REQUEST)
-
-    for client in clients:
-        data = client['socket'].recv(10240)
-        if data != EXPECTED_RESPONSE: 
-            print('Test case ' + request[0] + ' failed.')
-            print('Expect: -------------------')
-            print(EXPECTED_RESPONSE)
-            #print(EXPECTED_RESPONSE)
-            print('Get: ----------------------')
-            print(data)
-            sys.exit(1)
+    for i in range(NUM_OF_PERSISTENT_REQUESTS):
+        for client in clients:
+            client['socket'].sendall(REQUEST)
+            data = client['socket'].recv(10240)
+            if data != EXPECTED_RESPONSE: 
+                print('Test case ' + request[0] + ' failed.')
+                print(i)
+                print('Expect: -------------------')
+                print(EXPECTED_RESPONSE)
+                print('Get: ----------------------')
+                print(data)
+                sys.exit(1)
 
     # Close
     for client in clients:
+        client['socket'].shutdown(socket.SHUT_RDWR)
         client['socket'].close()
     print("Test case " + request[0] + " passed.")
     

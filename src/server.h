@@ -34,7 +34,7 @@ class Server {
   void Loop();
    
   void AcceptConnection(int listen_fd);
-  void RemoveRequest(int client_fd);
+  void RemoveMapping(int client_fd);
   void HandleRequest(int fd);
   int ReadRequest(int client_fd, char *buf, int buf_size);
 

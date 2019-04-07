@@ -29,8 +29,8 @@ void InitContentMapping() {
          ContentHandler(kContentFolder + "ow.ico", "image/apng")});
 }
 
-void RequestHandler::AppendResponse(std::string &&response) {
-  responses.push_back(std::move(response));
+void RequestHandler::AppendResponse(std::string &&r) {
+  response += r;
 }
 
 void RequestHandler::GetValidResponse() {
@@ -96,9 +96,8 @@ HandlerResult RequestHandler::GetResponse() {
 }
 
 void RequestHandler::SendResponse() {
-  for (const std::string &r: responses) {
-    Write(client_fd, r.c_str(), r.size());
-  }
+  Write(client_fd, response.c_str(), response.size());
+  response.clear();
 }
 
 int RequestHandler::GetCgiResponse() {

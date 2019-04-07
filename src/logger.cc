@@ -32,6 +32,7 @@ void Logger::Initialize(const std::string &log_file) {
 
 void Logger::Log(const char *s) {
   file_stream_.write(s, strlen(s));
+  file_stream_.flush();
 }
 
 void Logger::Log(const std::string &s) {
