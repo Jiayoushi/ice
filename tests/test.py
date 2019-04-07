@@ -6,9 +6,10 @@ import ipaddress
 import subprocess
 import atexit
 import time
+import os
 
 # Server
-server = subprocess.Popen(['../ice', '..'])
+server = subprocess.Popen(['./ice', '.'])
 atexit.register(server.kill)
 
 time.sleep(1)
@@ -18,7 +19,7 @@ BASE_HOST = '127.0.0.1'
 PORT = 8080
 NUM_OF_CLIENTS = 1
 
-requests_folder = 'requests/'
+requests_folder = 'tests/requests/'
 response_postfix = '_response'
 requests = [('get_home', 'r'), ('get_ico', 'rb'), ('invalid_get', 'r'), ('unfound_url', 'r'), ('test_basic_cgi', 'r'), \
             ('test_post', 'r'), ('head_home', 'r')

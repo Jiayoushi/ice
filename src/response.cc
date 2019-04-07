@@ -178,7 +178,7 @@ CgiInfo::~CgiInfo() {
 }
 
 void CgiInfo::AddArgument(const std::string &s) {
-  argv[argc] = new char[s.size()];
+  argv[argc] = new char[s.size() + 1];
   strcpy(argv[argc], s.c_str());
   ++argc;
   argv[argc] = nullptr;
@@ -192,7 +192,7 @@ void CgiInfo::SetArguments(const HttpRequest &http_request) {
 }
 
 void CgiInfo::AddEnvironmentVariable(const std::string &s) {
-  envp[envc] = new char[s.size()];
+  envp[envc] = new char[s.size() + 1];
   strcpy(envp[envc], s.c_str());
   ++envc;
   envp[envc] = nullptr;
