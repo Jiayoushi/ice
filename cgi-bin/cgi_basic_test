@@ -8,7 +8,7 @@ for x in sys.argv:
     arguments += x + '\n'
 
 env = ""
-for x in os.environ:
+for x in ["CONTENT_LENGTH", "CONTENT_TYPE", "GATEWAY_INTERFACE", "REQUEST_URL", "SCRIPT_NAME"]:
     env += x + '=' + os.environ[x] + '\n'
 
 customized_message = "Hello CGI!\nBasic CGI POST Test! The server should return this message at the end!\n"
