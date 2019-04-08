@@ -4,6 +4,7 @@ Supports GET, POST, HEAD, CGI and persistent connection.
 
 ## Installation
 ```
+cmake .
 make
 ```
 
