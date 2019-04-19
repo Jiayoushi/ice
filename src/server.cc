@@ -15,7 +15,7 @@ namespace ice {
 Server::Server() {
   InitHttpParserSettings();
   InitContentMapping();
-  InitLogger(kLogFile);
+  InitLog(kLogFile);
 }
 
 Server::~Server() {
@@ -53,7 +53,7 @@ void Server::Run() {
 void Server::HandleRequest(int fd) {
   auto result = request_handler_map_.find(fd);
   if (result == request_handler_map_.end()) {
-    Log("client_map error: unmatched fd");
+    LogMsg("client_map error: unmatched fd");
     return;
   }
 
@@ -84,7 +84,7 @@ void Server::HandleRequest(int fd) {
       FD_SET(child_fd, &active_fds_);
       request_handler_map_[child_fd] = result->second;
     } else {
-      Log("HandleRequest: unmatched HandlerResult");
+      LogMsg("HandleRequest: unmatched HandlerResult");
       RemoveMapping(client_fd);
     }
   // Cgi has responded
@@ -92,13 +92,13 @@ void Server::HandleRequest(int fd) {
     int &child_fd = fd;
     // Wait for this child to finish
     if (waitpid(ci.GetChildPid(), NULL, 0) < 0) {
-      Log("Wait for cgi child failed: ");
+      LogMsg("Wait for cgi child failed: ");
     } else {
       // Read from cgi
       char response[kMaxBufSize];
       int bytes_read = read(child_fd, response, kMaxBufSize);
       if (bytes_read < 0) {
-        Log("HandleRequest read response from cgi error");
+        LogMsg("HandleRequest read response from cgi error");
       } else {
         response[bytes_read] = '\0';
       }
@@ -118,23 +118,23 @@ void Server::AcceptConnection(int listen_fd) {
   request_handler_map_[client_fd] = std::make_shared<RequestHandler>(client_fd, client_address);
   FD_SET(client_fd, &active_fds_);
 
-  Log("Accept client, assigned file descriptor: " + std::to_string(client_fd));
+  LogMsg("Accept client, assigned file descriptor: " + std::to_string(client_fd));
 }
 
 void Server::RemoveMapping(int client_fd) {
   request_handler_map_.erase(client_fd);
   Close(client_fd);
   FD_CLR(client_fd, &active_fds_);
-  Log("Remove client, assigned file descriptor: " + std::to_string(client_fd));
+  LogMsg("Remove client, assigned file descriptor: " + std::to_string(client_fd));
 }
 
 int Server::ReadRequest(int client_fd, char *buf, int buf_size) {
   int bytes_read = read(client_fd, buf, buf_size);
   if (bytes_read < 0) {
-    Log("Error: read");
+    LogMsg("Error: read");
     return -1;
   } else if (bytes_read == 0) {
-    Log("Client " + std::to_string(client_fd) + " has closed connection");
+    LogMsg("Client " + std::to_string(client_fd) + " has closed connection");
   }
 
   return bytes_read;

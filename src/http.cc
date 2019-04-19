@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <iostream>
 
-#include "logger.h"
+#include "log.h"
 
 namespace ice {
 

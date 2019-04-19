@@ -9,7 +9,7 @@
 
 #include "http.h"
 #include "response.h"
-#include "logger.h"
+#include "log.h"
 
 namespace ice {
 

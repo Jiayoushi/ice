@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <string>
 
-#include "logger.h"
+#include "log.h"
 #include "settings.h"
 
 namespace ice {
@@ -18,20 +18,20 @@ namespace ice {
 int Socket(int domain, int type, int protocol) {
   int listen_fd = socket(domain, type, protocol);
   if (listen_fd < 0) {
-    Log("Error: failed to set up socket ");
+    LogMsg("Error: failed to set up socket ");
   }
   return listen_fd;
 }
 
 void Bind(int listen_fd, sockaddr_in &server_address) {
   if (bind(listen_fd, (sockaddr *)&server_address, sizeof(server_address)) < 0) {
-    Log("bind");
+    LogMsg("bind");
   }
 }
 
 void Listen(int listen_fd, int max_pending_connections) {
   if (listen(listen_fd, max_pending_connections) < 0) {
-    Log("listen");
+    LogMsg("listen");
   }
 }
 
@@ -45,7 +45,7 @@ void SetServerAddress(sockaddr_in &server_address) {
 void SetSocketOptions(int listen_fd) {
   int optval = 1;
   if (setsockopt(listen_fd, SOL_SOCKET, SO_REUSEADDR, (const void *)&optval, sizeof(int)) < 0) {
-    Log("Error: setsockopt ");
+    LogMsg("Error: setsockopt ");
   }
 }
 
@@ -62,7 +62,7 @@ int SetUp() {
 int Accept(int listen_fd, sockaddr *address, socklen_t *address_length) {
   int client_fd = accept(listen_fd, address, address_length);
   if (client_fd < 0) {
-    Log("Error: accept");
+    LogMsg("Error: accept");
   }
 
   return client_fd;
@@ -70,14 +70,14 @@ int Accept(int listen_fd, sockaddr *address, socklen_t *address_length) {
 
 void Close(int fd) {
   if (close(fd) < 0) {
-    Log("Error: close");
+    LogMsg("Error: close");
   }
 }
 
 int Read(int client_fd, char *buffer, const size_t length) {
   int length_read = read(client_fd, buffer, length);
   if (length_read < 0) {
-    Log("Error: read");
+    LogMsg("Error: read");
   }
 
   return length_read;
@@ -85,7 +85,7 @@ int Read(int client_fd, char *buffer, const size_t length) {
 
 int Write(int client_fd, const char *buffer, const size_t length) {
   if (length == 0) {
-    Log("Write error: attempt to send 0 bytes");
+    LogMsg("Write error: attempt to send 0 bytes");
     return -1;
   }
 
@@ -94,7 +94,7 @@ int Write(int client_fd, const char *buffer, const size_t length) {
   while (total_write != length) {
     w = write(client_fd, buffer, length - total_write); 
     if (w < 0) {
-      Log("Write error");
+      LogMsg("Write error");
     } 
 
     total_write += w;
@@ -108,7 +108,7 @@ void Select(int fd_limit, fd_set *read_fds,
             struct timeval *timeout) {
   if (select(fd_limit, read_fds,
              write_fds, exceptions, timeout) < 0) {
-    Log("Error: select");
+    LogMsg("Error: select");
   }
 }
 
