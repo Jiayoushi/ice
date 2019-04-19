@@ -42,4 +42,4 @@ ice
 *.swp
 
 # Any log files
-*log*
+log_file
